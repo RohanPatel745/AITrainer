@@ -1,0 +1,27 @@
+body {
+    background-color: black;
+    height: 100%;
+    display: flex;
+}
+
+#mazeSelectorButton {
+    position: absolute;
+    left: 30%;
+    top: 25%;
+    width: 10vw;
+    height: 5vw;
+    font-size: 2dvw;
+    background-color: darkgray;
+    color: white;
+}
+
+#carSelectorButton {
+    position: absolute;
+    left: 42%;
+    top: 25%;
+    width: 10vw;
+    height: 5vw;
+    font-size: 2dvw;
+    background-color: darkgray;
+    color: white;
+}

@@ -1,0 +1,215 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Responsive Website
+    </title>
+    <link rel="stylesheet" href="/css/maze/mazeLevels.css?v=1.0">
+</head>
+<body>
+    <style>
+        #blankSpaceRewardLabel {
+            position: absolute;
+            left: 70.3%;
+            top: 40%;
+            font-size: 1dvw;
+            color: white;
+        }
+
+        #blankSpaceRewardInput {
+            position: absolute;
+            left: 79.75%;
+            top: 39.5%;
+            width: 5vw;
+            font-size: 1dvw;
+            color: black;
+            background-color: white;
+        }
+
+        #trophySpaceRewardLabel {
+            position: absolute;
+            left: 70.3%;
+            top: 45%;
+            font-size: 1dvw;
+            color: white;
+        }
+
+        #trophySpaceRewardInput {
+            position: absolute;
+            left: 79.75%;
+            top: 44.5%;
+            width: 5vw;
+            font-size: 1dvw;
+            color: black;
+            background-color: white;
+        }
+
+        #xSpaceRewardLabel {
+            position: absolute;
+            left: 70.3%;
+            top: 50%;
+            font-size: 1dvw;
+            color: white;
+        }
+
+        #xSpaceRewardInput {
+            position: absolute;
+            left: 79.75%;
+            top: 49.5%;
+            width: 5vw;
+            font-size: 1dvw;
+            color: black;
+            background-color: white;
+        }
+
+        #runAlgorithmButton {
+            position: absolute;
+            left: 70%;
+            top: 60%;
+            width: 10vw;
+            height: 3vw;
+            font-size: 2dvw;
+            background-color: darkgray;
+            color: white;
+        }
+
+        #stopAlgorithmButton {
+            position: absolute;
+            left: 70%;
+            top: 68%;
+            width: 10vw;
+            height: 3vw;
+            font-size: 2dvw;
+            background-color: darkgray;
+            color: white;
+        }
+    </style>
+
+    <div id="container">
+        <canvas id="mazeCanvas"></canvas>
+    </div>
+    
+    <label id="epochsLabel">Epochs: 0</label>
+
+    <label id="rewardsLabel">Rewards: </label>
+    <label id="blankSpaceRewardLabel">Blank Space Reward: </label>
+    <input type="text" id="blankSpaceRewardInput"></input>
+    <label id="trophySpaceRewardLabel">Trophy Space Reward: </label>
+    <input type="text" id="trophySpaceRewardInput"></input>
+    <label id="xSpaceRewardLabel">X Space Reward: </label>
+    <input type="text" id="xSpaceRewardInput"></input>
+    <button id="runAlgorithmButton">Run</button>
+    <button id="stopAlgorithmButton">Stop</button>
+
+    <button id="backButton">Back</button>
+    <script>
+        const socket = new WebSocket(`ws://${window.location.host}/mazeLevels`);
+
+        const screenWidth = document.documentElement.clientWidth;
+        const screenHeight = document.documentElement.clientHeight;
+
+        const maze = document.getElementById("mazeCanvas");
+        const canvas = maze.getContext('2d', { willReadFrequently: true });
+        const computedStyle = window.getComputedStyle(maze);
+
+        const borderWidth = parseFloat(computedStyle.getPropertyValue('border-width'));
+        
+        function drawMaze(x, y){
+            canvas.clearRect(0, 0, maze.width, maze.height)
+
+            for (let i = 0; i < 4; i++) {
+                canvas.fillStyle = 'gray';
+                let xOffset = maze.width / 5 * (i + 1);
+                let yOffset = maze.height / 5 * (i + 1);
+
+                canvas.fillRect(xOffset, 0, borderWidth / 2, maze.width);
+                canvas.fillRect(0, yOffset, maze.width, borderWidth / 4);
+            }
+
+            canvas.fillStyle = 'red';
+            canvas.fillRect(x * (maze.width / 5) + 20, y * (maze.height / 5) + 15, 0.01 * screenWidth, 0.005 * screenWidth)
+
+            const trophyImage = new Image();
+            trophyImage.src = "/images/trophy.png";
+            trophyImage.onload = () => {
+                let xOffset = (maze.width / 5 * 4) + (((maze.width / 5) - borderWidth * 3.5) / 2);
+                let yOffset = (maze.height / 5 * 4) + (((maze.height / 5) - borderWidth * 1.25) / 2);
+
+                canvas.drawImage(trophyImage, xOffset, yOffset, 0.04 * screenWidth, 0.015 * screenWidth);
+            }
+
+            drawX(2, 0);
+            drawX(2, 2);
+            drawX(4, 2);
+            drawX(3, 2);
+            drawX(0, 1);
+            drawX(2, 1);
+            drawX(1, 3);
+            drawX(3, 4);
+        }
+
+        function drawX(x, y) {
+            canvas.strokeStyle = "red";
+            canvas.lineWidth = 2;
+            offset = 0;
+            if (x > 0) offset = 5;
+
+            canvas.beginPath();
+            canvas.moveTo(10 + ((maze.width / 5) * x) + offset, ((maze.height / 5) * y + (maze.height / 10 - 5) + (maze.height / 10)));
+            canvas.lineTo(maze.width / 5 - 10 + ((maze.width / 5) * x), ((maze.height / 5) * y - (maze.height / 10 - 7) + (maze.height / 10)));
+            canvas.stroke();
+
+            canvas.beginPath();
+            canvas.moveTo(10 + ((maze.width / 5) * x + offset), ((maze.height / 5) * y - (maze.height / 10 - 7) + (maze.height / 10)));
+            canvas.lineTo(maze.width / 5 - 10 + ((maze.width / 5) * x), ((maze.height / 5) * y + (maze.height / 10 - 5) + (maze.height / 10)));
+            canvas.stroke();
+        }
+
+        drawMaze(0, 0);
+
+        const runAlgorithmButton = document.getElementById("runAlgorithmButton");
+        runAlgorithmButton.addEventListener('click', function () {
+            const blankSpaceReward = document.getElementById("blankSpaceRewardInput").value;
+            const trophySpaceReward = document.getElementById("trophySpaceRewardInput").value;
+            const xSpaceRewardInput = document.getElementById("xSpaceRewardInput").value;
+
+            const message = {
+                action: 'runLevelThree',
+                blankSpaceReward: blankSpaceReward,
+                trophySpaceReward: trophySpaceReward,
+                xSpaceReward: xSpaceRewardInput
+            };
+
+            socket.send(JSON.stringify(message));
+        });
+
+        const stopAlgorithmButton = document.getElementById("stopAlgorithmButton");
+        stopAlgorithmButton.addEventListener('click', function () {
+            const message = {
+                action: 'stop'
+            };
+
+            socket.send(JSON.stringify(message));
+        });
+        
+        const backButton = document.getElementById("backButton");
+        backButton.addEventListener("click", function() {
+            const message = {
+                action: 'stop'
+            };
+
+            socket.send(JSON.stringify(message));
+            window.location.href = "/maze/mazeSelector"
+        });
+
+        const epochsLabel = document.getElementById("epochsLabel");
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            drawMaze(data.x, data.y);
+            epochsLabel.textContent = "Epoch: " + data.epoch;
+        }
+    </script>
+</body>

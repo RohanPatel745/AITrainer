@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Responsive Website
+    </title>
+    <link rel="stylesheet" href="/css/track.css?v=1.0">
+    <style>
+        #container {
+            width: 45vw;
+            height: 45vw;
+            left: 2vw;
+            position: absolute;
+            display: flex;
+            align-items: center;
+        }
+        #boundingBox {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        #car {
+            width: 3%;
+            height: 6%;
+            top: 47%;
+            left: 7%;
+            position: absolute;
+            background-color: red;
+            transform-origin: center;
+            transform: rotate(90deg);
+        }
+
+    </style>
+</head>
+<body>
+    <div id="container">
+        <canvas id="boundingBox"></canvas>
+        <div id="car"></div>
+    </div>
+    <button id="backButton">Back</button>
+    <script>
+        let goalCenterX = 0;
+        let goalCenterY = 0;
+        let carCenterX = 8.5;
+        let carCenterY = 50;
+
+        const car = document.getElementById('car');
+        const episodeCounter = document.getElementById('episodeCounter');
+        const socket = new WebSocket(`ws://${window.location.host}/car`);
+        let carAngle = 90;
+
+        function adjustCanvasSize() {
+            const container = document.getElementById('container');
+            const boundingBox = document.getElementById('boundingBox');
+            const containerWidth = container.offsetWidth;
+            container.style.height = containerWidth + 'px';
+            boundingBox.width = containerWidth * 0.5;
+            boundingBox.height = containerWidth * 0.5;
+            drawTrackAndGoal();
+        }
+
+        adjustCanvasSize();
+
+        window.addEventListener('resize', adjustCanvasSize);
+        window.addEventListener('load', adjustCanvasSize);
+
+        let distance = Math.sqrt(Math.pow((goalCenterY - carCenterY), 2) + Math.pow((goalCenterX - carCenterX), 2));
+        let distances = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, carAngle, distance];
+        let oldDistances = distances.map(point => ({ ...point }));
+
+        let lastKeyPressTime = 0;
+        const keyPressInterval = 16;
+
+        socket.onmessage = function(event) {
+            const currentTime = Date.now();
+            if (currentTime - lastKeyPressTime < keyPressInterval) {
+                return;
+            }
+
+            lastKeyPressTime = currentTime;
+
+            const data = JSON.parse(event.data);
+            car.style.left = data.x + '%';
+            car.style.top = data.y + '%';
+            car.style.transform = 'rotate(' + data.rotation + 'deg)';
+            carAngle = data.rotation;
+
+            episodeCounter.textContent = "Episode: " + data.episode;
+
+            if (isColliding() == "collided") {
+                socket.send(JSON.stringify({ action: 'collision' }));
+            } else if (isColliding() == "won") {
+                socket.send(JSON.stringify({ action: 'won' }))
+            }
+            if (!arraysAreEqual(oldDistances, distances)) {
+                let oldDistances = distances.map(point => ({ ...point }));
+                distances[8] = data.x;
+                distances[9] = data.y;
+                distances[10] = carAngle;
+                distances[11] = Math.sqrt(Math.pow((goalCenterY - carCenterY), 2) + Math.pow((goalCenterX - carCenterX), 2));
+                socket.send(JSON.stringify({ action: 'distances', data: distances }));
+            } 
+        };
+
+        function arraysAreEqual(arr1, arr2) {
+            if (arr1.length !== arr2.length) return false;
+            for (let i = 0; i < arr1.length; i++) {
+                if (arr1[i] !== arr2[i]) return false;
+            }
+            return true;
+        }
+
+        function drawTrackAndGoal() {
+            // const boundingBox = document.getElementById('boundingBox');
+            // const canvas = boundingBox.getContext('2d', { willReadFrequently: true });
+            // const width = boundingBox.width;
+            // const height = boundingBox.height;
+            
+            // const goalWidth = width * 0.1;
+            // const goalHeight = height * 0.2;
+            // const goalTop = height * 0.4;
+            // const goalLeft = width * 0.9;
+            // canvas.fillStyle = 'blue';
+            // canvas.fillRect(goalLeft, goalTop, goalWidth, goalHeight);
+
+            // canvas.strokeStyle = 'blue';
+            // canvas.lineWidth = 10;
+            // canvas.strokeRect(goalLeft, goalTop, goalWidth, goalHeight);
+
+            // goalCenterX = goalLeft + (goalWidth / 2);
+            // goalCenterY = goalTop + (goalHeight / 2);
+
+            // const trackWidth = width;
+            // const trackHeight = height * 0.2;
+            // const trackTop = height * 0.4;
+
+            // canvas.strokeStyle = 'gray';
+            // canvas.lineWidth = 10;
+            // canvas.strokeRect(0, trackTop, trackWidth, trackHeight);
+        }
+        
+        function isColliding() {
+            const boundingBox = document.getElementById("boundingBox");
+            const canvas = boundingBox.getContext('2d', { willReadFrequently: true });
+            const boundingBoxRect = car.getBoundingClientRect();
+
+            const carLeftInBoundingBox = Math.round((parseFloat(car.style.left) / 100) * boundingBox.width);
+            const carTopInBoundingBox = Math.round((parseFloat(car.style.top) / 100) * boundingBox.height);
+            const carWidthInBoundingBox = Math.round((3 / 100) * boundingBox.width);
+            const carHeightInBoundingBox = Math.round((6 / 100) * boundingBox.height);
+
+            let borderPoints = [
+                { x: carLeftInBoundingBox, y: carTopInBoundingBox }, //top left
+                { x: carLeftInBoundingBox + carWidthInBoundingBox / 2, y: carTopInBoundingBox }, //top middle
+                { x: carLeftInBoundingBox + carWidthInBoundingBox, y: carTopInBoundingBox }, //top right
+                { x: carLeftInBoundingBox + carWidthInBoundingBox, y: carTopInBoundingBox + carHeightInBoundingBox / 2 }, //middle right
+                { x: carLeftInBoundingBox + carWidthInBoundingBox, y: carTopInBoundingBox + carHeightInBoundingBox }, //bottom right
+                { x: carLeftInBoundingBox + carWidthInBoundingBox / 2, y: carTopInBoundingBox + carHeightInBoundingBox }, //bottom middle
+                { x: carLeftInBoundingBox, y: carTopInBoundingBox + carHeightInBoundingBox }, //bottom left
+                { x: carLeftInBoundingBox, y: carTopInBoundingBox + carHeightInBoundingBox / 2 } //middle left
+            ];
+
+            const carCenter = [carLeftInBoundingBox + carWidthInBoundingBox / 2, carTopInBoundingBox + carHeightInBoundingBox / 2]
+            carCenterX = carCenter[0];
+            carCenterY = carCenter[1];
+            let rotatedBorderPoints = borderPoints.map(corner => rotatePoint(corner, { x: carCenter[0], y: carCenter[1] }, carAngle * Math.PI / 180));
+            
+            for (let x = 0; x < rotatedBorderPoints.length; x++) {
+                const rotatedPoint = rotatedBorderPoints[x];
+                const imageData = canvas.getImageData(rotatedPoint.x, rotatedPoint.y, 1, 1).data;
+                for (let i = 0; i < imageData.length; i += 4) {
+                    const red = imageData[i];
+                    const green = imageData[i + 1];
+                    const blue = imageData[i + 2];
+                    if (red === 128 && green === 128 && blue === 128) {
+                        return "collided";
+                    } else if (red === 0 && green === 0 && blue == 255) {
+                        return "won";
+                    }
+                }
+            }
+
+            modifiedBorderPoints = borderPoints.map(point => ({ ...point }));
+            let calculatedPointIndicies = [];
+            while (calculatedPointIndicies.length < 8) {
+
+                modifiedBorderPoints[0].x -= .25;
+                modifiedBorderPoints[0].y -= .25;
+
+                modifiedBorderPoints[1].y -= .25;
+
+                modifiedBorderPoints[2].x += .25;
+                modifiedBorderPoints[2].y -= .25;
+
+                modifiedBorderPoints[3].x += .25;
+
+                modifiedBorderPoints[4].x += .25;
+                modifiedBorderPoints[4].y += .25;
+
+                modifiedBorderPoints[5].y += .25;
+
+                modifiedBorderPoints[6].x -= .25;
+                modifiedBorderPoints[6].y += .25;
+
+                modifiedBorderPoints[7].x -= .25;
+
+                rotatedBorderPoints = modifiedBorderPoints.map(corner => rotatePoint(corner, { x: carCenter[0], y: carCenter[1] }, carAngle * Math.PI / 180));
+
+                for (let x = 0; x < 8; x++) {
+                    if (calculatedPointIndicies.includes(x)) continue;
+
+                    const rotatedPoint = rotatedBorderPoints[x];
+
+                    if (rotatedPoint.x < 0 || rotatedPoint.x > 500 || rotatedPoint.y < 0 || rotatedPoint.y > 500) {
+                        modifiedBorderPoints = borderPoints.map(point => ({ ...point }));
+                        calculatedPointIndicies = [];
+                        break;
+                    }
+
+                    const imageData = canvas.getImageData(rotatedPoint.x, rotatedPoint.y, 1, 1).data;
+                    for (let i = 0; i < imageData.length; i += 4) {
+                        const red = imageData[i];
+                        const green = imageData[i + 1];
+                        const blue = imageData[i + 2];
+                        if (red === 128 && green === 128 && blue === 128) {
+                            calculatedPointIndicies.push(x);
+                            distances[x] = Math.sqrt(Math.pow((rotatedPoint.y - borderPoints[x].y), 2) 
+                            + Math.pow((rotatedPoint.x - borderPoints[x].x), 2));
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        function rotatePoint(point, center, angle) {
+            const cosAngle = Math.cos(angle);
+            const sinAngle = Math.sin(angle);
+
+            const dx = point.x - center.x;
+            const dy = point.y - center.y;
+            const rotatedX = Math.round(center.x + dx * cosAngle - dy * sinAngle);
+            const rotatedY = Math.round(center.y + dx * sinAngle + dy * cosAngle);
+            return { x: rotatedX, y: rotatedY };
+        }
+
+        document.getElementById("backButton").addEventListener("click", function() {
+            window.location.href = "/"
+        });
+
+        document.addEventListener('keydown', function(event) {
+            switch (event.key.toLowerCase()) {
+                case 'w':
+                    socket.send(JSON.stringify({ action: 'accelerate' }));
+                    break;
+                case 's':
+                    socket.send(JSON.stringify({ action: 'brake' }));
+                    break;
+                case 'a':
+                    socket.send(JSON.stringify({ action: 'turnLeft' }));
+                    break;
+                case 'd':
+                    socket.send(JSON.stringify({ action: 'turnRight' }));
+                    break;
+                case 'q':
+                    socket.send(JSON.stringify({ action: 'run'}));
+            }
+        });
+    </script>
+</body>
+</html>

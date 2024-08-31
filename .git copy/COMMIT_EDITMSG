@@ -1,0 +1,37 @@
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch master
+# Your branch is up to date with 'origin/master'.
+#
+# Changes to be committed:
+#	new file:   Dockerfile
+#	modified:   build.gradle
+#	new file:   src/main/java/com/test/test/CarWebSocketHandler.java
+#	new file:   src/main/java/com/test/test/DQNAgent.java
+#	new file:   src/main/java/com/test/test/DQNNetwork.java
+#	new file:   src/main/java/com/test/test/ExperienceReplay.java
+#	modified:   src/main/java/com/test/test/HomeController.java
+#	new file:   src/main/java/com/test/test/WebSocketConfig.java
+#	new file:   src/main/java/com/test/test/maze/MazeWebSocketHandler.java
+#	new file:   src/main/java/com/test/test/maze/QLearningEnvironment.java
+#	new file:   src/main/resources/static/css/home.css
+#	new file:   src/main/resources/static/css/maze/mazeLevels.css
+#	new file:   src/main/resources/static/css/maze/mazeSelector.css
+#	deleted:    src/main/resources/static/css/styles.css
+#	new file:   src/main/resources/static/css/track.css
+#	new file:   src/main/resources/static/images/trophy.png
+#	new file:   src/main/resources/templates/home.html
+#	deleted:    src/main/resources/templates/index.html
+#	new file:   src/main/resources/templates/maze/mazeLevelFive.html
+#	new file:   src/main/resources/templates/maze/mazeLevelFour.html
+#	new file:   src/main/resources/templates/maze/mazeLevelOne.html
+#	new file:   src/main/resources/templates/maze/mazeLevelThree.html
+#	new file:   src/main/resources/templates/maze/mazeLevelTwo.html
+#	new file:   src/main/resources/templates/maze/mazeSelector.html
+#	new file:   src/main/resources/templates/track.html
+#
+# Changes not staged for commit:
+#	modified:   src/main/java/com/test/test/CarWebSocketHandler.java
+#
