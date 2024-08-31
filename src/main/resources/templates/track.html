@@ -7,32 +7,6 @@
         Responsive Website
     </title>
     <link rel="stylesheet" href="/css/track.css?v=1.0">
-    <style>
-        #container {
-            width: 45vw;
-            height: 45vw;
-            left: 2vw;
-            position: absolute;
-            display: flex;
-            align-items: center;
-        }
-        #boundingBox {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-        #car {
-            width: 3%;
-            height: 6%;
-            top: 47%;
-            left: 7%;
-            position: absolute;
-            background-color: red;
-            transform-origin: center;
-            transform: rotate(90deg);
-        }
-
-    </style>
 </head>
 <body>
     <div id="container">
@@ -51,14 +25,46 @@
         const socket = new WebSocket(`ws://${window.location.host}/car`);
         let carAngle = 90;
 
-        function adjustCanvasSize() {
-            const container = document.getElementById('container');
+        let isDrawing = false;
+
+        boundingBox.addEventListener('mousedown', function(event) {
+            isDrawing = true;
+            draw(event);
+        });
+
+        boundingBox.addEventListener('mousemove', function(event) {
+            if (isDrawing) {
+                draw(event);
+            }
+        });
+
+        boundingBox.addEventListener('mouseup', function() {
+            isDrawing = false;
+        });
+
+        boundingBox.addEventListener('mouseleave', function() {
+            isDrawing = false;
+        });
+        
+        function draw(event) {
             const boundingBox = document.getElementById('boundingBox');
+            const canvas = boundingBox.getContext('2d', { willReadFrequently: true });
+            const rect = boundingBox.getBoundingClientRect();
+
+            const x = ((event.clientX - rect.left) / rect.width) * boundingBox.width;
+            const y = ((event.clientY - rect.top) / rect.height) * boundingBox.height;
+
+            canvas.fillStyle = 'gray';
+            canvas.fillRect(x, y, 5, 5);
+        }
+
+        function adjustCanvasSize() {
+            const boundingBox = document.getElementById('boundingBox');
+            const container = document.getElementById('container');
             const containerWidth = container.offsetWidth;
             container.style.height = containerWidth + 'px';
             boundingBox.width = containerWidth * 0.5;
             boundingBox.height = containerWidth * 0.5;
-            drawTrackAndGoal();
         }
 
         adjustCanvasSize();
@@ -87,13 +93,10 @@
             car.style.transform = 'rotate(' + data.rotation + 'deg)';
             carAngle = data.rotation;
 
-            episodeCounter.textContent = "Episode: " + data.episode;
-
             if (isColliding() == "collided") {
                 socket.send(JSON.stringify({ action: 'collision' }));
-            } else if (isColliding() == "won") {
-                socket.send(JSON.stringify({ action: 'won' }))
             }
+
             if (!arraysAreEqual(oldDistances, distances)) {
                 let oldDistances = distances.map(point => ({ ...point }));
                 distances[8] = data.x;
@@ -111,38 +114,9 @@
             }
             return true;
         }
-
-        function drawTrackAndGoal() {
-            // const boundingBox = document.getElementById('boundingBox');
-            // const canvas = boundingBox.getContext('2d', { willReadFrequently: true });
-            // const width = boundingBox.width;
-            // const height = boundingBox.height;
-            
-            // const goalWidth = width * 0.1;
-            // const goalHeight = height * 0.2;
-            // const goalTop = height * 0.4;
-            // const goalLeft = width * 0.9;
-            // canvas.fillStyle = 'blue';
-            // canvas.fillRect(goalLeft, goalTop, goalWidth, goalHeight);
-
-            // canvas.strokeStyle = 'blue';
-            // canvas.lineWidth = 10;
-            // canvas.strokeRect(goalLeft, goalTop, goalWidth, goalHeight);
-
-            // goalCenterX = goalLeft + (goalWidth / 2);
-            // goalCenterY = goalTop + (goalHeight / 2);
-
-            // const trackWidth = width;
-            // const trackHeight = height * 0.2;
-            // const trackTop = height * 0.4;
-
-            // canvas.strokeStyle = 'gray';
-            // canvas.lineWidth = 10;
-            // canvas.strokeRect(0, trackTop, trackWidth, trackHeight);
-        }
         
         function isColliding() {
-            const boundingBox = document.getElementById("boundingBox");
+            const boundingBox = document.getElementById('boundingBox');
             const canvas = boundingBox.getContext('2d', { willReadFrequently: true });
             const boundingBoxRect = car.getBoundingClientRect();
 
@@ -181,6 +155,8 @@
                     }
                 }
             }
+
+            return;
 
             modifiedBorderPoints = borderPoints.map(point => ({ ...point }));
             let calculatedPointIndicies = [];
@@ -250,24 +226,65 @@
             window.location.href = "/"
         });
 
+        const keyState = {
+            w: false,
+            a: false,
+            s: false,
+            d: false
+        };
+
         document.addEventListener('keydown', function(event) {
             switch (event.key.toLowerCase()) {
                 case 'w':
-                    socket.send(JSON.stringify({ action: 'accelerate' }));
-                    break;
-                case 's':
-                    socket.send(JSON.stringify({ action: 'brake' }));
+                    keyState.w = true;
                     break;
                 case 'a':
-                    socket.send(JSON.stringify({ action: 'turnLeft' }));
+                    keyState.a = true;
+                    break;
+                case 's':
+                    keyState.s = true;
                     break;
                 case 'd':
-                    socket.send(JSON.stringify({ action: 'turnRight' }));
+                    keyState.d = true;
                     break;
-                case 'q':
-                    socket.send(JSON.stringify({ action: 'run'}));
             }
         });
+
+        document.addEventListener('keyup', function(event) {
+            switch (event.key.toLowerCase()) {
+                case 'w':
+                    keyState.w = false;
+                    break;
+                case 'a':
+                    keyState.a = false;
+                    break;
+                case 's':
+                    keyState.s = false;
+                    break;
+                case 'd':
+                    keyState.d = false;
+                    break;
+            }
+        });
+
+        function update() {
+            if (keyState.w) {
+                socket.send(JSON.stringify({ action: 'accelerate' }));
+            }
+            if (keyState.a) {
+                socket.send(JSON.stringify({ action: 'turnLeft' }));
+            }
+            if (keyState.s) {
+                socket.send(JSON.stringify({ action: 'brake' }));
+            }
+            if (keyState.d) {
+                socket.send(JSON.stringify({ action: 'turnRight' }));
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        update();
     </script>
 </body>
 </html>

@@ -75,11 +75,6 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
                     reset();
                     gameFinished = true;
                     break;
-                case "won":
-                    reset();
-                    gameWon = true;
-                    System.out.println("Game Won");
-                    break;
                 case "run":
                     testing = false;
                     runDQN();
@@ -101,19 +96,19 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void accelerate() {
-        if (carVelocity < 1.5) carVelocity += .2;
+        if (carVelocity < 1.5) carVelocity += .02;
     }
 
     private void brake() {
-        if (carVelocity > -1) carVelocity -= .20;
+        if (carVelocity > -1) carVelocity -= .02;
     }
 
     private void turnLeft() {
-        carAngle -= 5;
+        carAngle -= 1;
     }
 
     private void turnRight() {
-        carAngle += 5;
+        carAngle += 1;
     }
 
     private void reset() {
