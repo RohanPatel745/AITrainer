@@ -86,6 +86,15 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
                     testing = !testing;
                     reset();
                     break;
+                case "updateCarPosition":
+                    double[] carPosition = objectMapper.convertValue(jsonNode.get("data"), double[].class);
+                    carX = carPosition[0];
+                    carY = carPosition[1];
+                    break;
+                case "updateCarAngle":
+                    double[] carRotation = objectMapper.convertValue(jsonNode.get("data"), double[].class);
+                    carAngle = carRotation[0];
+                    break;
             }
         }
     }
