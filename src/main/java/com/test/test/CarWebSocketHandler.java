@@ -13,19 +13,29 @@ import java.util.Arrays;
 
 
 public class CarWebSocketHandler extends TextWebSocketHandler {
-
     private double carX = 7;
     private double carY = 47;
     private double carAngle = 90;
     private double carVelocity = 0;
+
+    private double startingCarX;
+    private double startingCarY;
+    private double startingCarAngle;
+
     private int episode = 0;
     private boolean gameFinished = false;
     private boolean gameWon = false;
     private double[] currentState = new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     private double[] oldState;
+
     private boolean running = false;
     private boolean testing = false;
-    private double closestDistance = 255;
+    private double closestDistance = 500;
+
+    private double moveCloserReward;
+    private double moveFartherReward;
+    private double collisionReward;
+    private double goalReward;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private WebSocketSession webSocketSession;
@@ -75,8 +85,23 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
                     reset();
                     gameFinished = true;
                     break;
+                case "won":
+                    reset();
+                    gameWon = true;
+                    break;
                 case "run":
                     testing = false;
+
+                    double[] rewards = objectMapper.convertValue(jsonNode.get("data"), double[].class);
+                    moveCloserReward = rewards[0];
+                    moveFartherReward = rewards[1];
+                    collisionReward = rewards[2];
+                    goalReward = rewards[3];
+
+                    startingCarX = carX;
+                    startingCarY = carY;
+                    startingCarAngle = carAngle;
+
                     runDQN();
                     break;
                 case "distances":
@@ -121,10 +146,11 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void reset() {
-        carX = 7;
-        carY = 47;
-        carAngle = 90;
-        closestDistance = 255;
+        carX = startingCarX;
+        carY = startingCarY;
+        carVelocity = 0;
+        carAngle = startingCarAngle;
+        closestDistance = 500;
     }
 
     private synchronized void runDQN() {
@@ -155,14 +181,14 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
                         } catch (Exception ignored) {
                         }
 
-                        double reward = -5;
+                        double reward = moveFartherReward;
                         if (currentState[11] < closestDistance) {
-                            reward = 10;
+                            reward = moveCloserReward;
                             closestDistance = currentState[11];
                         }
 
-                        if (gameFinished) reward = -250;
-                        else if (gameWon) reward = 1000;
+                        if (gameFinished) reward = collisionReward;
+                        else if (gameWon) reward = goalReward;
 
                         agent.storeExperience(oldState, action, reward, currentState, gameFinished || gameWon);
                         agent.train();

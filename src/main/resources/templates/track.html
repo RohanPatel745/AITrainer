@@ -15,20 +15,32 @@
     </div>
 
     <label id="drawTitleLabel">Draw Options: </label>
-    <input type="checkbox" id="drawTrackCheckBox"></input>
     <label id="drawTrackLabel">Draw Track: </label>
-    <input type="checkbox" id="drawGoalCheckBox"></input>
+    <input type="checkbox" id="drawTrackCheckBox"></input>
     <label id="drawGoalLabel">Draw Goal: </label>
-    <input type="checkbox" id="moveCarCheckBox"></input>
+    <input type="checkbox" id="drawGoalCheckBox"></input>
     <label id="moveCarLabel">Move Car: </label>
-    <input type="checkbox" id="rotateCarCheckBox"></input>
+    <input type="checkbox" id="moveCarCheckBox"></input>
     <label id="rotateCarLabel">Rotate Car: </label>
+    <input type="checkbox" id="rotateCarCheckBox"></input>
     <button id="selectGoalPointButton">Select Goal Point</button>
+
+    <label id="rewardsLabel">Rewards: </label>
+    <label id="moveCloserRewardLabel">Move Closer: </label>
+    <input type="text" id="moveCloserRewardInput"></input>
+    <label id="moveFartherRewardLabel">Move Farther: </label>
+    <input type="text" id="moveFartherRewardInput"></input>
+    <label id="collisionRewardLabel">Collision: </label>
+    <input type="text" id="collisionRewardInput"></input>
+    <label id="goalRewardLabel">Goal: </label>
+    <input type="text" id="goalRewardInput"></input>
+    <button id="runAlgorithmButton">Run</button>
+    <button id="testAlgorithmButton">Test</button>
 
     <button id="backButton">Back</button>
     <script>
-        let goalCenterX = 0;
-        let goalCenterY = 0;
+        let goalX = 0;
+        let goalY = 0;
         let carCenterX = 8.5;
         let carCenterY = 50;
 
@@ -104,6 +116,22 @@
             isMovingCar = false;
         });
 
+        selectGoalPointButton.addEventListener("click", function() {
+            isSelectingGoalPoint = true;
+
+            drawTrackCheckBox.checked = false;
+            isDrawingTrack = false;
+
+            drawGoalCheckBox.checked = false;
+            isDrawingGoal = false;
+            
+            moveCarCheckBox.checked = false;
+            isMovingCar = false;
+
+            rotateCarCheckBox.checked = false;
+            isRotatingCar = false;
+        })
+
         boundingBox.addEventListener('mousedown', function(event) {
             isDrawing = true;
             draw(event);
@@ -117,7 +145,6 @@
 
         window.addEventListener('mouseup', function() {
             isDrawing = false;
-            console.log("hi");
         });
         
         function draw(event) {
@@ -132,10 +159,9 @@
                 canvas.fillStyle = 'gray';
                 canvas.fillRect(x, y, 5, 5);
             } else if (isDrawingGoal) {
-                canvas.fillStyle = 'green';
+                canvas.fillStyle = 'blue';
                 canvas.fillRect(x, y, 5, 5);
             } else if (isMovingCar) {
-                console.log(isDrawing);
                 let moveCarX = event.x - 30;
                 let moveCarY = event.y - 25;
 
@@ -166,8 +192,51 @@
                 let carPosition = [];
                 carPosition[0] = carAngle
                 socket.send(JSON.stringify({ action: 'updateCarAngle', data: carPosition }));
+            } else if (isSelectingGoalPoint) {
+                canvas.fillStyle = 'orange';
+                canvas.clearRect(goalX - 1.5, goalY - 1.5, 6.5, 6.5);
+                canvas.fillRect(x, y, 5, 5); 
+
+                goalX = x;
+                goalY = y;
+                isSelectingGoalPoint = false;
+                isDrawing = false;
             }
         }
+
+        const runAlgorithmButton = document.getElementById("runAlgorithmButton");
+        runAlgorithmButton.addEventListener('click', function () {
+            drawTrackCheckBox.checked = false;
+            isDrawingTrack = false;
+
+            drawGoalCheckBox.checked = false;
+            isDrawingGoal = false;
+            
+            moveCarCheckBox.checked = false;
+            isMovingCar = false;
+
+            rotateCarCheckBox.checked = false;
+            isRotatingCar = false;
+
+            isSelectingGoalPoint = false;
+
+            const moveCloserRewardInput= document.getElementById("moveCloserRewardInput").value;
+            const moveFartherRewardInput = document.getElementById("moveFartherRewardInput").value;
+            const collisionRewardInput = document.getElementById("collisionRewardInput").value;
+            const goalRewardInput = document.getElementById("goalRewardInput").value;
+
+            let rewards = [];
+            rewards[0] = moveCloserRewardInput;
+            rewards[1] = moveFartherRewardInput;
+            rewards[2] = collisionRewardInput;
+            rewards[3] = goalRewardInput;
+            socket.send(JSON.stringify({ action: 'run', data: rewards }));
+        });
+
+        const testAlgorithmButton = document.getElementById("testAlgorithmButton");
+        testAlgorithmButton.addEventListener("click", function() {
+            socket.send(JSON.stringify({ action: 'test' }));
+        });
 
         function adjustCanvasSize() {
             const boundingBox = document.getElementById('boundingBox');
@@ -183,7 +252,7 @@
         window.addEventListener('resize', adjustCanvasSize);
         window.addEventListener('load', adjustCanvasSize);
 
-        let distance = Math.sqrt(Math.pow((goalCenterY - carCenterY), 2) + Math.pow((goalCenterX - carCenterX), 2));
+        let distance = Math.sqrt(Math.pow((goalY - carCenterY), 2) + Math.pow((goalX - carCenterX), 2));
         let distances = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, carAngle, distance];
         let oldDistances = distances.map(point => ({ ...point }));
 
@@ -204,8 +273,11 @@
             car.style.transform = 'rotate(' + data.rotation + 'deg)';
             carAngle = data.rotation;
 
-            if (isColliding() == "collided" && !isMovingCar && !isRotatingCar) {
+            let message = isColliding();
+            if (message == "collided" && !isMovingCar && !isRotatingCar) {
                 socket.send(JSON.stringify({ action: 'collision' }));
+            } else if (message == "won" && !isMovingCar && !isRotatingCar) {
+                socket.send(JSON.stringify({ action: 'won' }));
             }
 
             if (!arraysAreEqual(oldDistances, distances)) {
@@ -213,7 +285,7 @@
                 distances[8] = data.x;
                 distances[9] = data.y;
                 distances[10] = carAngle;
-                distances[11] = Math.sqrt(Math.pow((goalCenterY - carCenterY), 2) + Math.pow((goalCenterX - carCenterX), 2));
+                distances[11] = Math.sqrt(Math.pow((goalY - carCenterY), 2) + Math.pow((goalX - carCenterX), 2));
                 socket.send(JSON.stringify({ action: 'distances', data: distances }));
             } 
         };
@@ -261,7 +333,7 @@
                     const blue = imageData[i + 2];
                     if (red === 128 && green === 128 && blue === 128) {
                         return "collided";
-                    } else if (red === 0 && green === 0 && blue == 255) {
+                    } else if (red === 0 && green === 0 && blue === 255) {
                         return "won";
                     }
                 }
@@ -318,8 +390,6 @@
                     }
                 }
             }
-
-            console.log("Distances: " + distances[0]);
         }
 
         function rotatePoint(point, center, angle) {
