@@ -14,6 +14,8 @@
         <div id="car"></div>
     </div>
 
+    <label id="epochLabel">Epoch: 0</label>
+
     <label id="drawTitleLabel">Draw Options: </label>
     <label id="drawTrackLabel">Draw Track: </label>
     <input type="checkbox" id="drawTrackCheckBox"></input>
@@ -34,6 +36,10 @@
     <input type="text" id="collisionRewardInput"></input>
     <label id="goalRewardLabel">Goal: </label>
     <input type="text" id="goalRewardInput"></input>
+    <label id="speedRewardLabel">Speed: </label>
+    <input type="text" id="speedRewardInput"></input>
+
+
     <button id="runAlgorithmButton">Run</button>
     <button id="testAlgorithmButton">Test</button>
 
@@ -224,12 +230,14 @@
             const moveFartherRewardInput = document.getElementById("moveFartherRewardInput").value;
             const collisionRewardInput = document.getElementById("collisionRewardInput").value;
             const goalRewardInput = document.getElementById("goalRewardInput").value;
+            const speedRewardInput = document.getElementById("speedRewardInput").value;
 
             let rewards = [];
             rewards[0] = moveCloserRewardInput;
             rewards[1] = moveFartherRewardInput;
             rewards[2] = collisionRewardInput;
             rewards[3] = goalRewardInput;
+            rewards[4] = speedRewardInput;
             socket.send(JSON.stringify({ action: 'run', data: rewards }));
         });
 
@@ -286,8 +294,12 @@
                 distances[9] = data.y;
                 distances[10] = carAngle;
                 distances[11] = Math.sqrt(Math.pow((goalY - carCenterY), 2) + Math.pow((goalX - carCenterX), 2));
+                distances[12] = 0;
                 socket.send(JSON.stringify({ action: 'distances', data: distances }));
-            } 
+            }
+
+            const epochLabel = document.getElementById("epochLabel");
+            epochLabel.textContent = "Epochs: " + data.epoch;
         };
 
         function arraysAreEqual(arr1, arr2) {

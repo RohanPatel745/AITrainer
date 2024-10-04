@@ -6,10 +6,13 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.nd4j.nativeblas.Nd4jCpu.split;
 import org.springframework.web.socket.TextMessage;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Timer;
 
 
 public class CarWebSocketHandler extends TextWebSocketHandler {
@@ -22,20 +25,23 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
     private double startingCarY;
     private double startingCarAngle;
 
-    private int episode = 0;
+    private int epoch = 0;
     private boolean gameFinished = false;
     private boolean gameWon = false;
-    private double[] currentState = new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private double[] currentState = new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     private double[] oldState;
 
     private boolean running = false;
     private boolean testing = false;
-    private double closestDistance = 500;
+    private double closestDistance;
+    private double maxDistance = 0;
+    private double[] times = new double[1005];
 
     private double moveCloserReward;
     private double moveFartherReward;
     private double collisionReward;
     private double goalReward;
+    private double speedReward;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private WebSocketSession webSocketSession;
@@ -58,6 +64,8 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
                     Thread.sleep(16);
                 } catch (Exception ignored) {
                 }
+
+                if ((gameFinished || gameWon) && (!running && !testing)) reset(true);
             }
             
         }).start();
@@ -82,11 +90,9 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
                     turnRight();
                     break;
                 case "collision":
-                    reset();
                     gameFinished = true;
                     break;
                 case "won":
-                    reset();
                     gameWon = true;
                     break;
                 case "run":
@@ -97,6 +103,7 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
                     moveFartherReward = rewards[1];
                     collisionReward = rewards[2];
                     goalReward = rewards[3];
+                    speedReward = rewards[4];
 
                     startingCarX = carX;
                     startingCarY = carY;
@@ -106,10 +113,11 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
                     break;
                 case "distances":
                     currentState = objectMapper.convertValue(jsonNode.get("data"), double[].class);
+                    currentState[12] = carVelocity;
                     break;
                 case "test":
                     testing = !testing;
-                    reset();
+                    reset(false);
                     break;
                 case "updateCarPosition":
                     double[] carPosition = objectMapper.convertValue(jsonNode.get("data"), double[].class);
@@ -125,7 +133,7 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
     }
 
     private synchronized void sendCarState() throws IOException{
-        String response = String.format("{\"x\": %f, \"y\": %f, \"rotation\": %f, \"episode\": %d}", carX, carY, carAngle, episode);
+        String response = String.format("{\"x\": %f, \"y\": %f, \"rotation\": %f, \"epoch\": %d}", carX, carY, carAngle, epoch);
         webSocketSession.sendMessage(new TextMessage(response));
     }
 
@@ -145,32 +153,46 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
         carAngle += 1;
     }
 
-    private void reset() {
+    private void reset(boolean resetTimes) {
         carX = startingCarX;
         carY = startingCarY;
         carVelocity = 0;
         carAngle = startingCarAngle;
-        closestDistance = 500;
+        closestDistance = maxDistance;
+        gameFinished = false;
+        gameWon = false;
+        if (resetTimes) for (int i = 0; i < 1005; i++) times[i] = 0;
     }
 
     private synchronized void runDQN() {
         running = true;
-        int stateSize = 12;
+        int inputSize = 13;
         int actionSize = 4;
-        int hiddenSize = 8;
+        int hiddenSize = 5;
         int replayCapacity = 1000;
 
-        DQNAgent agent = new DQNAgent(stateSize, actionSize, hiddenSize, replayCapacity);
+        maxDistance = currentState[11];
+        closestDistance = maxDistance;
+        for (int i = 0; i < 1000; i++) times[i] = 0;
 
+        DQNAgent agent = new DQNAgent(inputSize, actionSize, hiddenSize, replayCapacity);
         Thread thread = new Thread(() -> {
             while (true) {
+                double totalReward = 0;
+                int moveNumber = 0;
+                boolean shouldReset = false;
                 if (!testing) {
-                    while (!(gameFinished || gameWon) && !testing) {
+                    while (!testing) {
+                        double startTime = System.currentTimeMillis();
                         int action = agent.chooseAction(currentState);
-                        oldState = Arrays.copyOf(currentState, 12);
+                        oldState = Arrays.copyOf(currentState, currentState.length);
                         switch (action) {
-                            case 0 -> accelerate();
-                            case 1 -> brake();
+                            case 0 -> {
+                                for (int i = 0; i < 3; i++) accelerate();
+                            }
+                            case 1 -> {
+                                for (int i = 0; i < 3; i++) brake();
+                            }
                             case 2 -> turnLeft();
                             case 3 -> turnRight();
                         }
@@ -181,39 +203,79 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
                         } catch (Exception ignored) {
                         }
 
-                        double reward = moveFartherReward;
-                        if (currentState[11] < closestDistance) {
-                            reward = moveCloserReward;
+                        double reward;
+
+                        if (gameFinished) {
+                            reward = collisionReward;
+                            shouldReset = true;
+                        }
+                        else if (gameWon) {
+                            reward = goalReward;
+                            shouldReset = true;
+                            testing = true;
+                        }
+                        else if (currentState[11] < closestDistance) {
+                            reward = moveCloserReward * (maxDistance - closestDistance) / 10d;
                             closestDistance = currentState[11];
                         }
+                        else reward = moveFartherReward / 100d;
 
-                        if (gameFinished) reward = collisionReward;
-                        else if (gameWon) reward = goalReward;
+                        if (carVelocity > 0) {
+                            reward += carVelocity * 5 * speedReward;
+                        }
+
+                        // System.out.println("Closest Distance: " + closestDistance + " Max Distance: " + maxDistance);
+                        // System.out.println("Current Distance: " + currentState[11]);
+                        // System.out.println("reward: " + reward);
+
+                        totalReward += reward;
 
                         agent.storeExperience(oldState, action, reward, currentState, gameFinished || gameWon);
                         agent.train();
-                    }
 
-                    episode++;
-                    gameFinished = false;
-                    gameWon = false;
+                        moveNumber++;
+                        if (moveNumber >= 500 || shouldReset) break;
+
+                        times[moveNumber] = System.currentTimeMillis() - startTime;
+                    }
+                    epoch++;
+                    System.out.println("Total Reward: " + totalReward);
+                    if (!testing) reset(true);
+                    else reset(false);
+                    moveNumber = 0;
+                    try {
+                        Thread.sleep(250);
+                    } catch (InterruptedException ignored) {
+                    }
                 } else {
                     while (testing) {
                         int action = agent.chooseBestAction(currentState);
-                        oldState = Arrays.copyOf(currentState, 12);
+                        oldState = Arrays.copyOf(currentState, currentState.length);
                         switch (action) {
-                            case 0 -> accelerate();
-                            case 1 -> brake();
+                            case 0 -> {
+                                for (int i = 0; i < 3; i++) accelerate();
+                            }
+                            case 1 -> {
+                                for (int i = 0; i < 3; i++) brake();
+                            }
                             case 2 -> turnLeft();
                             case 3 -> turnRight();
                         }
 
                         try {
                             sendCarState();
-                            Thread.sleep(16);
-                        } catch (Exception ignored) {
+                            if (times[moveNumber] != 0) Thread.sleep((long) (times[moveNumber] - 1));
+                            else Thread.sleep(52);
+                        } catch (Exception e) {
+                            System.out.println(times[moveNumber]);
                         }
+
+                        moveNumber++;
+                        if (gameFinished) testing = false;
+                        if (gameFinished || gameWon || moveNumber > 1000) break;
                     }
+                    reset(false);
+                    moveNumber = 0;
                 }   
             }
         });

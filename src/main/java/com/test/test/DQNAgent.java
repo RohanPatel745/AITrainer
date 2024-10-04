@@ -23,8 +23,8 @@ public class DQNAgent {
         this.replayBuffer = new ExperienceReplay(replayCapacity);
         this.epsilon = 1.0;
         this.epsilonMin = 0.01;
-        this.epsilonDecay = 0.995;
-        this.gamma = 0.95;
+        this.epsilonDecay = 0.9975;
+        this.gamma = .95;
         this.random = new Random();
         this.actionSize = actionSize;
         this.updateTargetFrequency = 1000;

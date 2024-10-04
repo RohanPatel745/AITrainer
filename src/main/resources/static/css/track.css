@@ -62,6 +62,14 @@ body {
     transform: rotate(90deg);
 }
 
+#epochLabel {
+    position: absolute;
+    left: 50%;
+    top: 10%;
+    font-size: 2dvw;
+    color: white;
+}
+
 #drawTitleLabel {
     position: absolute;
     left: 50%;
@@ -225,10 +233,28 @@ body {
     background-color: white;
 }
 
+#speedRewardLabel {
+    position: absolute;
+    left: 72%;
+    top: 49%;
+    font-size: 1dvw;
+    color: white;
+}
+
+#speedRewardInput {
+    position: absolute;
+    left: 78%;
+    top: 48.5%;
+    width: 5vw;
+    font-size: 1dvw;
+    color: black;
+    background-color: white;
+}
+
 #runAlgorithmButton {
     position: absolute;
     left: 72%;
-    top: 50%;
+    top: 60%;
     width: 12vw;
     height: 4vw;
     font-size: 2dvw;
@@ -239,7 +265,7 @@ body {
 #testAlgorithmButton {
     position: absolute;
     left: 62%;
-    top: 63%;
+    top: 73%;
     width: 10vw;
     height: 4vw;
     font-size: 2dvw;
