@@ -38,7 +38,7 @@ body {
 #rewardsLabel {
     position: absolute;
     left: 70.3%;
-    top: 30%;
+    top: 20%;
     font-size: 2dvw;
     color: white;
 }
@@ -46,7 +46,7 @@ body {
 #epochsLabel {
     position: absolute;
     left: 50%;
-    top: 30%;
+    top: 20%;
     font-size: 2dvw;
     color: white;
 }

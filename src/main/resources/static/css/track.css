@@ -272,3 +272,25 @@ body {
     background-color: darkgray;
     color: white;
 }
+
+#saveButton {
+    position: absolute;
+    left: 62%;
+    top: 80%;
+    width: 10vw;
+    height: 4vw;
+    font-size: 2dvw;
+    background-color: darkgray;
+    color: white;
+}
+
+#loadButton {
+    position: absolute;
+    left: 62%;
+    top: 90%;
+    width: 10vw;
+    height: 4vw;
+    font-size: 2dvw;
+    background-color: darkgray;
+    color: white;
+}

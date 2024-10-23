@@ -14,7 +14,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class MazeWebSocketHandler extends TextWebSocketHandler{
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static WebSocketSession webSocketSession;
-    private boolean isRunning = false;
+    private static boolean isRunning = false;
+    private static int level;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
@@ -30,6 +31,7 @@ public class MazeWebSocketHandler extends TextWebSocketHandler{
                 case "runLevelOne":
                     if (!isRunning) {
                         isRunning = true;
+                        level = 1;
                         new Thread(() -> {
                             QLearningEnvironment.setShouldInterrupt(false);
                             QLearningEnvironment.train(1, jsonNode.get("blankSpaceReward").asDouble(),
@@ -40,6 +42,7 @@ public class MazeWebSocketHandler extends TextWebSocketHandler{
                 case "runLevelTwo":
                     if (!isRunning) {
                         isRunning = true;
+                        level = 2;
                         new Thread(() -> {
                             QLearningEnvironment.setShouldInterrupt(false);
                             QLearningEnvironment.train(2, jsonNode.get("blankSpaceReward").asDouble(),
@@ -50,6 +53,7 @@ public class MazeWebSocketHandler extends TextWebSocketHandler{
                 case "runLevelThree":
                     if (!isRunning) {
                         isRunning = true;
+                        level = 3;
                         new Thread(() -> {
                             QLearningEnvironment.setShouldInterrupt(false);
                             QLearningEnvironment.train(3, jsonNode.get("blankSpaceReward").asDouble(),
@@ -60,6 +64,7 @@ public class MazeWebSocketHandler extends TextWebSocketHandler{
                 case "runLevelFour":
                     if (!isRunning) {
                         isRunning = true;
+                        level = 4;
                         new Thread(() -> {
                             QLearningEnvironment.setShouldInterrupt(false);
                             QLearningEnvironment.train(4, jsonNode.get("blankSpaceReward").asDouble(),
@@ -70,6 +75,7 @@ public class MazeWebSocketHandler extends TextWebSocketHandler{
                 case "runLevelFive":
                     if (!isRunning) {
                         isRunning = true;
+                        level = 5;
                         new Thread(() -> {
                             QLearningEnvironment.setShouldInterrupt(false);
                             QLearningEnvironment.train(5, jsonNode.get("blankSpaceReward").asDouble(),
@@ -98,5 +104,10 @@ public class MazeWebSocketHandler extends TextWebSocketHandler{
 
         String response = objectMapper.writeValueAsString(jsonNode);
         webSocketSession.sendMessage(new TextMessage(response));
+
+        if (QLearningEnvironment.getEpoch() > 2000) {
+            QLearningEnvironment.setShouldInterrupt(true);
+            isRunning = false;
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.test.test;
 
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
@@ -50,9 +51,9 @@ public class DQNAgent {
     }
 
     public void train() {
-        if (replayBuffer.size() < 32) return;
+        if (replayBuffer.size() < 64) return;
 
-        List<Experience> batch = replayBuffer.sample(32);
+        List<Experience> batch = replayBuffer.sample(64);
 
         for (Experience exp : batch) {
             double[] target = network.predict(exp.state).toDoubleVector();
@@ -73,5 +74,17 @@ public class DQNAgent {
         if (epsilon > epsilonMin) {
             epsilon *= epsilonDecay;
         }
+    }
+
+    public void resetEpsilon(double epsilon) {
+        this.epsilon = epsilon;
+    }
+
+    public MultiLayerNetwork getNeuralNet() {
+        return network.getModel();
+    }
+
+    public void setNeuralNet(MultiLayerNetwork multiLayerNetwork) {
+        network.setModel(multiLayerNetwork);
     }
 }

@@ -15,6 +15,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(new CarWebSocketHandler(), "/car").setAllowedOrigins("*");
         registry.addHandler(new MazeWebSocketHandler(), "/mazeLevels").setAllowedOrigins("*");
+        registry.addHandler(new PathfindingWebSocketHandler(), "/pathfinding/socket").setAllowedOrigins("*");
     }
 }
 

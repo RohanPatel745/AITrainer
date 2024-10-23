@@ -189,8 +189,9 @@ public class QLearningEnvironment {
         }
     }
 
-    private static void test(int level, double... rewards) {
+    public static void test(int level, double... rewards) {
         int moveNumber = 0;
+        shouldInterrupt = false;
         while (!shouldInterrupt) {
             int[] state = getCurrentState(moveNumber);
             int action = chooseBestAction(state, moveNumber);

@@ -68,4 +68,14 @@ public class DQNNetwork {
         INDArray label = Nd4j.create(target).reshape(1, target.length);
         model.fit(input, label);
     }
+
+    public MultiLayerNetwork getModel() {
+        return this.model;
+    }
+
+    public void setModel(MultiLayerNetwork model) {
+        this.model = model;
+        this.model.init();
+        updateTargetNetwork();
+    }
 }

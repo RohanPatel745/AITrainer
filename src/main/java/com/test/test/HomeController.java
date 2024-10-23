@@ -12,9 +12,19 @@ public class HomeController {
         return "home";
     }
 
+    // @GetMapping("/info")
+    // public String info() {
+    //     return "info";
+    // }
+
     @GetMapping("/track")
     public String track() {
         return "track";
+    }
+
+    @GetMapping("/pathfinding")
+    public String pathfinding() {
+        return "pathfinding";
     }
 
     @GetMapping("/maze/mazeSelector")

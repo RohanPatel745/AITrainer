@@ -6,58 +6,58 @@ body {
 
 #levelOneButton {
     position: absolute;
-    left: 30%;
-    top: 25%;
-    width: 5vw;
-    height: 5vw;
-    font-size: 2dvw;
+    left: 20%;
+    top: 40%;
+    width: 10vw;
+    height: 10vw;
+    font-size: 4dvw;
     background-color: darkgray;
-    color: white;
+    color: lime;
 }
 
 #levelTwoButton {
     position: absolute;
-    left: 37%;
-    top: 25%;
-    width: 5vw;
-    height: 5vw;
+    left: 32%;
+    top: 40%;
+    width: 10vw;
+    height: 10vw;
     font-size: 2dvw;
     background-color: darkgray;
-    color: white;
+    color: lime;
 }
 
 #levelThreeButton {
     position: absolute;
     left: 44%;
-    top: 25%;
-    width: 5vw;
-    height: 5vw;
+    top: 40%;
+    width: 10vw;
+    height: 10vw;
     font-size: 2dvw;
     background-color: darkgray;
-    color: white;
+    color: yellow;
 }
 
 
 #levelFourButton {
     position: absolute;
-    left: 51%;
-    top: 25%;
-    width: 5vw;
-    height: 5vw;
+    left: 56%;
+    top: 40%;
+    width: 10vw;
+    height: 10vw;
     font-size: 2dvw;
     background-color: darkgray;
-    color: white;
+    color: yellow;
 }
 
 #levelFiveButton {
     position: absolute;
-    left: 58%;
-    top: 25%;
-    width: 5vw;
-    height: 5vw;
+    left: 68%;
+    top: 40%;
+    width: 10vw;
+    height: 10vw;
     font-size: 2dvw;
     background-color: darkgray;
-    color: white;
+    color: red;
 }
 
 #backButton {

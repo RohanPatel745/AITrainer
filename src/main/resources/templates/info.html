@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Responsive Website
+    </title>
+    <link rel="stylesheet" href="\css\info.css">
+</head>
+<body>
+    <button id="backButton">Back</button>
+    <script>
+        const backButton = document.getElementById("backButton");
+        backButton.addEventListener("click", function() {
+            window.location.href = "/"
+        });
+    </script>
+</body>

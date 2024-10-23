@@ -14,7 +14,7 @@
         #blankSpaceRewardLabel {
             position: absolute;
             left: 70.3%;
-            top: 40%;
+            top: 30%;
             font-size: 1dvw;
             color: white;
         }
@@ -22,7 +22,7 @@
         #blankSpaceRewardInput {
             position: absolute;
             left: 79.75%;
-            top: 39.5%;
+            top: 29.5%;
             width: 5vw;
             font-size: 1dvw;
             color: black;
@@ -32,7 +32,7 @@
         #trophySpaceRewardLabel {
             position: absolute;
             left: 70.3%;
-            top: 45%;
+            top: 35%;
             font-size: 1dvw;
             color: white;
         }
@@ -40,7 +40,7 @@
         #trophySpaceRewardInput {
             position: absolute;
             left: 79.75%;
-            top: 44.5%;
+            top: 34.5%;
             width: 5vw;
             font-size: 1dvw;
             color: black;
@@ -50,7 +50,7 @@
         #xSpaceRewardLabel {
             position: absolute;
             left: 70.3%;
-            top: 50%;
+            top: 40%;
             font-size: 1dvw;
             color: white;
         }
@@ -58,7 +58,7 @@
         #xSpaceRewardInput {
             position: absolute;
             left: 79.75%;
-            top: 49.5%;
+            top: 39.5%;
             width: 5vw;
             font-size: 1dvw;
             color: black;
@@ -68,7 +68,7 @@
         #enemySpaceRewardLabel {
             position: absolute;
             left: 70.3%;
-            top: 55%;
+            top: 45%;
             font-size: 1dvw;
             color: white;
         }
@@ -76,7 +76,7 @@
         #enemySpaceRewardInput {
             position: absolute;
             left: 79.75%;
-            top: 54.5%;
+            top: 44.5%;
             width: 5vw;
             font-size: 1dvw;
             color: black;
@@ -86,20 +86,9 @@
         #runAlgorithmButton {
             position: absolute;
             left: 70%;
-            top: 65%;
+            top: 55%;
             width: 10vw;
-            height: 3vw;
-            font-size: 2dvw;
-            background-color: darkgray;
-            color: white;
-        }
-
-        #stopAlgorithmButton {
-            position: absolute;
-            left: 70%;
-            top: 73%;
-            width: 10vw;
-            height: 3vw;
+            height: 5vw;
             font-size: 2dvw;
             background-color: darkgray;
             color: white;
@@ -122,7 +111,6 @@
     <label id="enemySpaceRewardLabel">Enemy Space Reward: </label>
     <input type="text" id="enemySpaceRewardInput"></input>
     <button id="runAlgorithmButton">Run</button>
-    <button id="stopAlgorithmButton">Stop</button>
 
     <button id="backButton">Back</button>
     <script>
@@ -246,15 +234,6 @@
                 trophySpaceReward: trophySpaceReward,
                 xSpaceReward: xSpaceReward,
                 enemySpaceReward: enemySpaceReward
-            };
-
-            socket.send(JSON.stringify(message));
-        });
-
-        const stopAlgorithmButton = document.getElementById("stopAlgorithmButton");
-        stopAlgorithmButton.addEventListener('click', function () {
-            const message = {
-                action: 'stop'
             };
 
             socket.send(JSON.stringify(message));

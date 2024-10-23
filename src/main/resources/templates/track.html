@@ -36,19 +36,25 @@
     <input type="text" id="collisionRewardInput"></input>
     <label id="goalRewardLabel">Goal: </label>
     <input type="text" id="goalRewardInput"></input>
-    <label id="speedRewardLabel">Speed: </label>
-    <input type="text" id="speedRewardInput"></input>
+    <!-- <label id="speedRewardLabel">Speed: </label>
+    <input type="text" id="speedRewardInput"></input> -->
 
 
     <button id="runAlgorithmButton">Run</button>
     <button id="testAlgorithmButton">Test</button>
+    <button id="saveButton">Save</button>
+    <button id="loadButton">Load</button>
 
     <button id="backButton">Back</button>
     <script>
         let goalX = 0;
         let goalY = 0;
+
         let carCenterX = 8.5;
         let carCenterY = 50;
+
+        let carDistanceX = 0;
+        let carDistanceY = 0;
 
         const car = document.getElementById('car');
         car.style.left = 7 + '%';
@@ -230,20 +236,30 @@
             const moveFartherRewardInput = document.getElementById("moveFartherRewardInput").value;
             const collisionRewardInput = document.getElementById("collisionRewardInput").value;
             const goalRewardInput = document.getElementById("goalRewardInput").value;
-            const speedRewardInput = document.getElementById("speedRewardInput").value;
+            // const speedRewardInput = document.getElementById("speedRewardInput").value;
 
             let rewards = [];
             rewards[0] = moveCloserRewardInput;
             rewards[1] = moveFartherRewardInput;
             rewards[2] = collisionRewardInput;
             rewards[3] = goalRewardInput;
-            rewards[4] = speedRewardInput;
+            // rewards[4] = speedRewardInput;
             socket.send(JSON.stringify({ action: 'run', data: rewards }));
         });
 
         const testAlgorithmButton = document.getElementById("testAlgorithmButton");
         testAlgorithmButton.addEventListener("click", function() {
             socket.send(JSON.stringify({ action: 'test' }));
+        });
+
+        const saveButton = document.getElementById("saveButton");
+        saveButton.addEventListener("click", function() {
+            socket.send(JSON.stringify({ action: 'save' }));
+        });
+
+        const loadButton = document.getElementById("loadButton");
+        loadButton.addEventListener("click", function() {
+            socket.send(JSON.stringify({ action: 'load' }));
         });
 
         function adjustCanvasSize() {
@@ -293,8 +309,9 @@
                 distances[8] = data.x;
                 distances[9] = data.y;
                 distances[10] = carAngle;
-                distances[11] = Math.sqrt(Math.pow((goalY - carCenterY), 2) + Math.pow((goalX - carCenterX), 2));
+                distances[11] = Math.sqrt(Math.pow((goalY - carDistanceY), 2) + Math.pow((goalX - carDistanceX), 2));
                 distances[12] = 0;
+                distances[13] = 0;
                 socket.send(JSON.stringify({ action: 'distances', data: distances }));
             }
 
@@ -334,6 +351,10 @@
             const carCenter = [carLeftInBoundingBox + carWidthInBoundingBox / 2, carTopInBoundingBox + carHeightInBoundingBox / 2];
             carCenterX = carCenter[0];
             carCenterY = carCenter[1];
+
+            carDistanceX = carLeftInBoundingBox + carWidthInBoundingBox / 2;
+            carDistanceY = carTopInBoundingBox;
+
             let rotatedBorderPoints = borderPoints.map(corner => rotatePoint(corner, { x: carCenter[0], y: carCenter[1] }, carAngle * Math.PI / 180));
             
             for (let x = 0; x < rotatedBorderPoints.length; x++) {
