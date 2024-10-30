@@ -31,7 +31,7 @@ public class PathfindingWebSocketHandler extends TextWebSocketHandler {
     private double[] currentState = new double[4];
     private double[] oldState;
     private double previousDistance;
-    private double[] times = new double[2500];
+    private double[] times = new double[4000];
     private int time = 30;
     private boolean shouldReset;
     private DQNAgent agent;
@@ -145,7 +145,7 @@ public class PathfindingWebSocketHandler extends TextWebSocketHandler {
         playerX = 47;
         playerY = 47;
         gameFinished = false;
-        if (resetTimes) for (int i = 0; i < 2500; i++) times[i] = 0;
+        if (resetTimes) for (int i = 0; i < 4000; i++) times[i] = 0;
         time = 30;
         numberOfDotsCollected = 0;
         dot[0] = random.nextInt(30, 70);

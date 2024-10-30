@@ -14,7 +14,7 @@
         <div id="player"></div>
     </div>
 
-    <label id="epochLabel">Epoch: 0</label>
+    <label id="epochLabel">Training Cycle: 0</label>
     <label id="timeLabel">Time: 0:30</label>
     <label id="numberOfDotsCollectedLabel">Number of Dots Collected: 0</label>
 
@@ -26,7 +26,7 @@
     <label id="collisionRewardLabel">Collision: </label>
     <input type="text" id="collisionRewardInput"></input>
 
-    <button id="runAlgorithmButton">Run</button>
+    <button id="runAlgorithmButton">Train</button>
     <button id="testAlgorithmButton">Test</button>
 
     <button id="backButton">Back</button>
@@ -101,7 +101,7 @@
             player.style.top = data.playerY + '%';
 
             const epochLabel = document.getElementById("epochLabel");
-            epochLabel.textContent = "Epochs: " + data.epoch;
+            epochLabel.textContent = "Training Cycle: " + data.epoch;
             const timeLabel = document.getElementById("timeLabel");
             timeLabel.textContent = "Time: " + data.time;
             const numberOfDotsCollectedLabel = document.getElementById("numberOfDotsCollectedLabel");

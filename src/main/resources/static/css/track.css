@@ -155,7 +155,7 @@ body {
 
 #rewardsLabel {
     position: absolute;
-    left: 72%;
+    left: 65%;
     top: 20%;
     font-size: 2dvw;
     color: white;
@@ -163,7 +163,7 @@ body {
 
 #moveCloserRewardLabel {
     position: absolute;
-    left: 72%;
+    left: 65%;
     top: 29%;
     font-size: 1dvw;
     color: white;
@@ -171,7 +171,7 @@ body {
 
 #moveCloserRewardInput {
     position: absolute;
-    left: 78%;
+    left: 71%;
     top: 28.5%;
     width: 5vw;
     font-size: 1dvw;
@@ -181,7 +181,7 @@ body {
 
 #moveFartherRewardLabel {
     position: absolute;
-    left: 72%;
+    left: 65%;
     top: 34%;
     font-size: 1dvw;
     color: white;
@@ -189,7 +189,7 @@ body {
 
 #moveFartherRewardInput {
     position: absolute;
-    left: 78%;
+    left: 71%;
     top: 33.5%;
     width: 5vw;
     font-size: 1dvw;
@@ -199,7 +199,7 @@ body {
 
 #collisionRewardLabel {
     position: absolute;
-    left: 72%;
+    left: 65%;
     top: 39%;
     font-size: 1dvw;
     color: white;
@@ -207,7 +207,7 @@ body {
 
 #collisionRewardInput {
     position: absolute;
-    left: 78%;
+    left: 71%;
     top: 38.5%;
     width: 5vw;
     font-size: 1dvw;
@@ -217,7 +217,7 @@ body {
 
 #goalRewardLabel {
     position: absolute;
-    left: 72%;
+    left: 65%;
     top: 44%;
     font-size: 1dvw;
     color: white;
@@ -225,7 +225,7 @@ body {
 
 #goalRewardInput {
     position: absolute;
-    left: 78%;
+    left: 71%;
     top: 43.5%;
     width: 5vw;
     font-size: 1dvw;
@@ -233,18 +233,62 @@ body {
     background-color: white;
 }
 
+#optimizationRewardsLabel {
+    position: absolute;
+    left: 80%;
+    top: 20%;
+    font-size: 2dvw;
+    color: white;
+}
+
 #speedRewardLabel {
     position: absolute;
-    left: 72%;
-    top: 49%;
+    left: 80%;
+    top: 29%;
     font-size: 1dvw;
     color: white;
 }
 
 #speedRewardInput {
     position: absolute;
-    left: 78%;
-    top: 48.5%;
+    left: 87%;
+    top: 28.5%;
+    width: 5vw;
+    font-size: 1dvw;
+    color: black;
+    background-color: white;
+}
+
+#safetyRewardLabel {
+    position: absolute;
+    left: 80%;
+    top: 34%;
+    font-size: 1dvw;
+    color: white;
+}
+
+#safetyRewardInput {
+    position: absolute;
+    left: 87%;
+    top: 33.5%;
+    width: 5vw;
+    font-size: 1dvw;
+    color: black;
+    background-color: white;
+}
+
+#fuelRewardLabel {
+    position: absolute;
+    left: 80%;
+    top: 39%;
+    font-size: 1dvw;
+    color: white;
+}
+
+#fuelRewardInput {
+    position: absolute;
+    left: 87%;
+    top: 38.5%;
     width: 5vw;
     font-size: 1dvw;
     color: black;
@@ -253,8 +297,8 @@ body {
 
 #runAlgorithmButton {
     position: absolute;
-    left: 72%;
-    top: 60%;
+    left: 65%;
+    top: 50%;
     width: 12vw;
     height: 4vw;
     font-size: 2dvw;
@@ -264,9 +308,9 @@ body {
 
 #testAlgorithmButton {
     position: absolute;
-    left: 62%;
-    top: 73%;
-    width: 10vw;
+    left: 80%;
+    top: 50%;
+    width: 12vw;
     height: 4vw;
     font-size: 2dvw;
     background-color: darkgray;
@@ -292,5 +336,13 @@ body {
     height: 4vw;
     font-size: 2dvw;
     background-color: darkgray;
+    color: white;
+}
+
+#speedLabel {
+    position: absolute;
+    left: 50%;
+    top: 85%;
+    font-size: 5dvw;
     color: white;
 }

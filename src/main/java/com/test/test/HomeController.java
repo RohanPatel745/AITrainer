@@ -12,10 +12,10 @@ public class HomeController {
         return "home";
     }
 
-    // @GetMapping("/info")
-    // public String info() {
-    //     return "info";
-    // }
+    @GetMapping("/info")
+    public String info() {
+        return "info";
+    }
 
     @GetMapping("/track")
     public String track() {

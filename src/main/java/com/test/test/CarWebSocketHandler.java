@@ -143,8 +143,12 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
     }
 
     private synchronized void sendCarState() throws IOException{
-        String response = String.format("{\"x\": %f, \"y\": %f, \"rotation\": %f, \"epoch\": %d}", carX, carY, carAngle, epoch);
+        String response = String.format("{\"x\": %f, \"y\": %f, \"rotation\": %f, \"epoch\": %d, \"speed\": %f}", carX, carY, carAngle, epoch, getSpeed());
         webSocketSession.sendMessage(new TextMessage(response));
+    }
+
+    private float getSpeed() {
+        return Math.round((Math.abs(carVelocity) / 1.5 * 60d));
     }
 
     private void accelerate() {

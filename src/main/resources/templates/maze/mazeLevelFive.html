@@ -99,18 +99,18 @@
         <canvas id="mazeCanvas"></canvas>
     </div>
     
-    <label id="epochsLabel">Epochs: 0</label>
+    <label id="epochsLabel">Training Cycle: 0</label>
 
     <label id="rewardsLabel">Rewards: </label>
-    <label id="blankSpaceRewardLabel">Blank Space Reward: </label>
+    <label id="blankSpaceRewardLabel">Blank Space Penalty: </label>
     <input type="text" id="blankSpaceRewardInput"></input>
     <label id="trophySpaceRewardLabel">Trophy Space Reward: </label>
     <input type="text" id="trophySpaceRewardInput"></input>
-    <label id="xSpaceRewardLabel">X Space Reward: </label>
+    <label id="xSpaceRewardLabel">X Space Penalty: </label>
     <input type="text" id="xSpaceRewardInput"></input>
-    <label id="enemySpaceRewardLabel">Enemy Space Reward: </label>
+    <label id="enemySpaceRewardLabel">Obstacle Penalty: </label>
     <input type="text" id="enemySpaceRewardInput"></input>
-    <button id="runAlgorithmButton">Run</button>
+    <button id="runAlgorithmButton">Train</button>
 
     <button id="backButton">Back</button>
     <script>
@@ -205,7 +205,7 @@
         drawMaze(0, 0);
 
         function drawX(x, y) {
-            canvas.strokeStyle = "red";
+            canvas.strokeStyle = "orange";
             canvas.lineWidth = 2;
             offset = 0;
             if (x > 0) offset = 5;
@@ -253,7 +253,7 @@
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);
             drawMaze(data.x, data.y, data.shouldReset);
-            epochsLabel.textContent = "Epoch: " + data.epoch;
+            epochsLabel.textContent = "Training Cycle: " + data.epoch;
         }
     </script>
 </body>

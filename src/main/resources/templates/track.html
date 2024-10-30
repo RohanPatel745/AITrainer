@@ -14,7 +14,7 @@
         <div id="car"></div>
     </div>
 
-    <label id="epochLabel">Epoch: 0</label>
+    <label id="epochLabel">Training Cycle: 0</label>
 
     <label id="drawTitleLabel">Draw Options: </label>
     <label id="drawTrackLabel">Draw Track: </label>
@@ -27,7 +27,7 @@
     <input type="checkbox" id="rotateCarCheckBox"></input>
     <button id="selectGoalPointButton">Select Goal Point</button>
 
-    <label id="rewardsLabel">Rewards: </label>
+    <label id="rewardsLabel">Main Rewards: </label>
     <label id="moveCloserRewardLabel">Move Closer: </label>
     <input type="text" id="moveCloserRewardInput"></input>
     <label id="moveFartherRewardLabel">Move Farther: </label>
@@ -36,14 +36,19 @@
     <input type="text" id="collisionRewardInput"></input>
     <label id="goalRewardLabel">Goal: </label>
     <input type="text" id="goalRewardInput"></input>
-    <!-- <label id="speedRewardLabel">Speed: </label>
-    <input type="text" id="speedRewardInput"></input> -->
 
+    <label id="optimizationRewardsLabel">Optimization Rewards: </label>
+    <label id="speedRewardLabel">Speed: </label>
+    <input type="text" id="speedRewardInput"></input>
+    <label id="safetyRewardLabel">Safety: </label>
+    <input type="text" id="safetyRewardInput"></input>
+    <label id="fuelRewardLabel">Fuel Efficiency: </label>
+    <input type="text" id="fuelRewardInput"></input>
 
-    <button id="runAlgorithmButton">Run</button>
+    <label id="speedLabel">0 mph </label>
+
+    <button id="runAlgorithmButton">Train</button>
     <button id="testAlgorithmButton">Test</button>
-    <button id="saveButton">Save</button>
-    <button id="loadButton">Load</button>
 
     <button id="backButton">Back</button>
     <script>
@@ -172,7 +177,7 @@
                 canvas.fillRect(x, y, 5, 5);
             } else if (isDrawingGoal) {
                 canvas.fillStyle = 'blue';
-                canvas.fillRect(x, y, 5, 5);
+                canvas.fillRect(x, y, 15, 15);
             } else if (isMovingCar) {
                 let moveCarX = event.x - 30;
                 let moveCarY = event.y - 25;
@@ -252,16 +257,6 @@
             socket.send(JSON.stringify({ action: 'test' }));
         });
 
-        const saveButton = document.getElementById("saveButton");
-        saveButton.addEventListener("click", function() {
-            socket.send(JSON.stringify({ action: 'save' }));
-        });
-
-        const loadButton = document.getElementById("loadButton");
-        loadButton.addEventListener("click", function() {
-            socket.send(JSON.stringify({ action: 'load' }));
-        });
-
         function adjustCanvasSize() {
             const boundingBox = document.getElementById('boundingBox');
             const container = document.getElementById('container');
@@ -316,7 +311,10 @@
             }
 
             const epochLabel = document.getElementById("epochLabel");
-            epochLabel.textContent = "Epochs: " + data.epoch;
+            epochLabel.textContent = "Training Cycle: " + data.epoch;
+
+            const speedLabel = document.getElementById("speedLabel");
+            speedLabel.textContent = data.speed + " mph";
         };
 
         function arraysAreEqual(arr1, arr2) {

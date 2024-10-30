@@ -21,7 +21,7 @@ body {
     top: 40%;
     width: 10vw;
     height: 10vw;
-    font-size: 2dvw;
+    font-size: 4dvw;
     background-color: darkgray;
     color: lime;
 }
@@ -32,7 +32,7 @@ body {
     top: 40%;
     width: 10vw;
     height: 10vw;
-    font-size: 2dvw;
+    font-size: 4dvw;
     background-color: darkgray;
     color: yellow;
 }
@@ -44,7 +44,7 @@ body {
     top: 40%;
     width: 10vw;
     height: 10vw;
-    font-size: 2dvw;
+    font-size: 4dvw;
     background-color: darkgray;
     color: yellow;
 }
@@ -55,7 +55,7 @@ body {
     top: 40%;
     width: 10vw;
     height: 10vw;
-    font-size: 2dvw;
+    font-size: 4dvw;
     background-color: darkgray;
     color: red;
 }

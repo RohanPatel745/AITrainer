@@ -81,16 +81,16 @@
         <canvas id="mazeCanvas"></canvas>
     </div>
     
-    <label id="epochsLabel">Epochs: 0</label>
+    <label id="epochsLabel">Training Cycle: 0</label>
 
     <label id="rewardsLabel">Rewards: </label>
-    <label id="blankSpaceRewardLabel">Blank Space Reward: </label>
+    <label id="blankSpaceRewardLabel">Blank Space Penalty: </label>
     <input type="text" id="blankSpaceRewardInput"></input>
-    <label id="trophySpaceRewardLabel">Trophy Space Reward: </label>
+    <label id="trophySpaceRewardLabel">Trophy Space Penalty: </label>
     <input type="text" id="trophySpaceRewardInput"></input>
-    <label id="enemySpaceRewardLabel">Enemy Space Reward: </label>
+    <label id="enemySpaceRewardLabel">Obstacle Penalty: </label>
     <input type="text" id="enemySpaceRewardInput"></input>
-    <button id="runAlgorithmButton">Run</button>
+    <button id="runAlgorithmButton">Train</button>
 
     <button id="backButton">Back</button>
     <script>
@@ -174,7 +174,7 @@
 
             socket.send(JSON.stringify(message));
         });
-        
+
         const backButton = document.getElementById("backButton");
         backButton.addEventListener("click", function() {
             const message = {
@@ -189,7 +189,7 @@
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);
             drawMaze(data.x, data.y, data.shouldReset);
-            epochsLabel.textContent = "Epoch: " + data.epoch;
+            epochsLabel.textContent = "Training Cycle: " + data.epoch;
         }
     </script>
 </body>
