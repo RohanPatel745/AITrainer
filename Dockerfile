@@ -1,32 +1,27 @@
-FROM openjdk:17-jdk-alpine
+# Stage 1: Build the JAR file
+FROM maven:3.8-openjdk-17 AS build
 
-# Install necessary dependencies
-RUN apk add --no-cache curl bash zip
-
-# Install SDKMAN
-RUN curl -s https://get.sdkman.io | bash
-
-# Set environment variables for SDKMAN and Gradle
-ENV SDKMAN_DIR=$HOME/.sdkman
-ENV PATH=$SDKMAN_DIR/bin:$PATH
-
-# Install Gradle using SDKMAN
-RUN bash -c "source $HOME/.sdkman/bin/sdkman-init.sh && sdk install gradle"
-
-# Set working directory
+# Set the working directory
 WORKDIR /app
 
-# Copy the project files with correct permissions
-COPY . .
+# Copy the pom.xml and src folder (exclude JAR from Git)
+COPY pom.xml .
+COPY src ./src
 
-# Ensure gradlew has execute permissions
-RUN chmod +x ./gradlew
+# Run Maven to build the JAR file
+RUN mvn clean package -DskipTests
 
-# Build the JAR file using Gradle
-RUN ./gradlew build
+# Stage 2: Create the runtime environment
+FROM openjdk:17-jdk-slim
 
-# Expose the port your application runs on
+# Set the working directory
+WORKDIR /app
+
+# Copy the JAR file from the build stage
+COPY --from=build /app/target/your-app.jar ./app.jar
+
+# Expose the necessary port (if required by your app)
 EXPOSE 9090
 
-# Run the generated JAR file
-ENTRYPOINT ["java", "-jar", "build/libs/test-0.0.1-SNAPSHOT.jar"]
+# Command to run the JAR file
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
