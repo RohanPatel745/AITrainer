@@ -1,27 +1,32 @@
-# Stage 1: Build the JAR file
-FROM maven:3.8-openjdk-17 AS build
+# Use a Gradle image with JDK
+FROM gradle:7.6-jdk17 AS build
 
-# Set the working directory
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy the pom.xml and src folder (exclude JAR from Git)
-COPY pom.xml .
-COPY src ./src
+# Copy the Gradle files to the container
+COPY build.gradle settings.gradle ./
 
-# Run Maven to build the JAR file
-RUN mvn clean package -DskipTests
+# Download dependencies
+RUN gradle build --no-daemon
 
-# Stage 2: Create the runtime environment
+# Copy the rest of your project
+COPY . .
+
+# Build the JAR file
+RUN gradle jar --no-daemon
+
+# Use a smaller JRE image to run the application
 FROM openjdk:17-jdk-slim
 
-# Set the working directory
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy the JAR file from the build stage
-COPY --from=build /app/target/your-app.jar ./app.jar
+# Copy the built JAR file from the build stage
+COPY --from=build /app/build/libs/*.jar app.jar
 
-# Expose the necessary port (if required by your app)
-EXPOSE 9090
+# Expose the port your website runs on
+EXPOSE 8080
 
 # Command to run the JAR file
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+CMD ["java", "-jar", "app.jar"]
