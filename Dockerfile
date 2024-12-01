@@ -4,9 +4,14 @@ FROM openjdk:17-jdk-alpine
 RUN apk add --no-cache curl bash zip
 
 # Install SDKMAN and Gradle
-RUN curl -s https://get.sdkman.io | bash \
-    && source $HOME/.sdkman/bin/sdkman-init.sh \
-    && sdk install gradle
+RUN curl -s https://get.sdkman.io | bash
+
+# Set environment variables for SDKMAN and Gradle
+ENV SDKMAN_DIR=$HOME/.sdkman
+ENV PATH=$SDKMAN_DIR/bin:$PATH
+
+# Install Gradle using SDKMAN
+RUN bash -c "source $SDKMAN_DIR/bin/sdkman-init.sh && sdk install gradle"
 
 # Set working directory
 WORKDIR /app
@@ -14,17 +19,7 @@ WORKDIR /app
 # Copy the project files
 COPY . .
 
-# Set environment variable for Gradle
-ENV GRADLE_HOME=$HOME/.sdkman/candidates/gradle/current
-ENV PATH=$GRADLE_HOME/bin:$PATH
-
-# Install Gradle (or Maven if you're using it)
-RUN apk add --no-cache curl bash \
-    && curl -s https://get.sdkman.io | bash \
-    && source $HOME/.sdkman/bin/sdkman-init.sh \
-    && sdk install gradle
-
-# Build the JAR file using Gradle (or Maven if you're using it)
+# Build the JAR file using Gradle
 RUN ./gradlew build
 
 # Expose the port your application runs on
