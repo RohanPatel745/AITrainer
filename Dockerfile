@@ -8,7 +8,7 @@ WORKDIR /app
 COPY build/libs/test-0.0.1-SNAPSHOT.jar app.jar
 
 # Expose the port your application runs on
-EXPOSE 8080
+EXPOSE 9090
 
 # Run the JAR file
 ENTRYPOINT ["java", "-jar", "app.jar"]
