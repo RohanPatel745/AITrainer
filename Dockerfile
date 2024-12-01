@@ -3,7 +3,7 @@ FROM openjdk:17-jdk-alpine
 # Install necessary dependencies
 RUN apk add --no-cache curl bash zip
 
-# Install SDKMAN and Gradle
+# Install SDKMAN
 RUN curl -s https://get.sdkman.io | bash
 
 # Set environment variables for SDKMAN and Gradle
