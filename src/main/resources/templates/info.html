@@ -10,6 +10,33 @@
 </head>
 <body>
     <button id="backButton">Back</button>
+    <div id="infoSection" style="color: white;">
+        <h1>Instructions</h1>
+        <div class="label">
+            <strong style="color: white;">Maze Escape:</strong>
+            <p>
+                Train the model to complete the maze in the shortest amount of steps. If it hasn't found the solution within 2000 training cycles, it will stop. 
+                The X's are penalty squares which the model is supposed to avoid and the blue squares are penalty blocks that move horizontally. 
+                Hint: To make the model take the shortest path, penalize movement in general by adding a negative number.
+            </p>
+        </div>
+        <div class="label">
+            <strong style="color: white;">Dot Collector:</strong>
+            <p>
+                Train the model to collect the most amount of dots in 30 seconds. The position of the dot is completely random. 
+                Hint: To make the model move efficiently, make the penalty for moving farther larger than the reward for moving closer to the dot.
+            </p>
+        </div>
+        <div class="label">
+            <strong style="color: white;">Track Challenge:</strong>
+            <p>
+                Train the model to drive the track that is drawn. To draw the track, make sure that it is completely enclosed by gray. 
+                Then, draw the goal area. If the car touches anywhere here, it is considered that it finished the track. 
+                The goal point is used for reward calculation and should be inside the goal area. This is a single point for it to aim toward. 
+                Add main rewards to train the model to complete the track; optimization rewards are not necessary.
+            </p>
+        </div>
+    </div>
     <script>
         const backButton = document.getElementById("backButton");
         backButton.addEventListener("click", function() {
