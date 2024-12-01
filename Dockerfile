@@ -16,8 +16,11 @@ RUN bash -c "source $SDKMAN_DIR/bin/sdkman-init.sh && sdk install gradle"
 # Set working directory
 WORKDIR /app
 
-# Copy the project files
+# Copy the project files with correct permissions
 COPY . .
+
+# Ensure gradlew has execute permissions
+RUN chmod +x ./gradlew
 
 # Build the JAR file using Gradle
 RUN ./gradlew build
