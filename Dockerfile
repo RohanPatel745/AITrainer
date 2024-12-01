@@ -11,7 +11,7 @@ ENV SDKMAN_DIR=$HOME/.sdkman
 ENV PATH=$SDKMAN_DIR/bin:$PATH
 
 # Install Gradle using SDKMAN
-RUN bash -c "source $SDKMAN_DIR/bin/sdkman-init.sh && sdk install gradle"
+RUN bash -c "source $HOME/.sdkman/bin/sdkman-init.sh && sdk install gradle"
 
 # Set working directory
 WORKDIR /app
