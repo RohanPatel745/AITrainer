@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Responsive Website
+    </title>
+    <link rel="stylesheet" href="/css/maze/mazeSelector.css?v=1.0">
+</head>
+<body>
+    <button id="levelOneButton">1</button>
+    <button id="levelTwoButton">2</button>
+    <button id="levelThreeButton">3</button>
+    <button id="levelFourButton">4</button>
+    <button id="levelFiveButton">5</button>
+    <button id="backButton">Back</button>
+    <script>
+        document.getElementById("levelOneButton").addEventListener("click", function() {
+            window.location.href = "/maze/mazeLevelOne"
+        });
+
+        document.getElementById("levelTwoButton").addEventListener("click", function() {
+            window.location.href = "/maze/mazeLevelTwo"
+        });
+
+        document.getElementById("levelThreeButton").addEventListener("click", function() {
+            window.location.href = "/maze/mazeLevelThree"
+        });
+
+        document.getElementById("levelFourButton").addEventListener("click", function() {
+            window.location.href = "/maze/mazeLevelFour"
+        });
+
+        document.getElementById("levelFiveButton").addEventListener("click", function() {
+            window.location.href = "/maze/mazeLevelFive"
+        });
+
+        document.getElementById("backButton").addEventListener("click", function() {
+            window.location.href = "/"
+        });
+
+
+    </script>
+</body>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Responsive Website
+    </title>
+    <link rel="stylesheet" href="\css\home.css">
+</head>
+<body>
+    <button id="mazeSelectorButton">Maze Escape</button>
+    <button id="pathfindingSelectorButton">Dot Collector</button>
+    <button id="carSelectorButton">Track Challenge</button>
+    <button id="infoButton">Info</button>
+    <script>
+        document.getElementById("mazeSelectorButton").addEventListener("click", function () {
+            window.location.href = "/maze/mazeSelector";
+        });
+
+        document.getElementById("pathfindingSelectorButton").addEventListener("click", function () {
+            window.location.href = "/pathfinding";
+        });
+
+        document.getElementById("carSelectorButton").addEventListener("click", function () {
+            window.location.href = "/track";
+        });
+
+        document.getElementById("infoButton").addEventListener("click", function () {
+            window.location.href = "/info";
+        });
+    </script>
+</body>

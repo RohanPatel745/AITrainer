@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Responsive Website
+    </title>
+    <link rel="stylesheet" href="/css/pathfinding.css?v=1.0">
+</head>
+<body>
+    <div id="container">
+        <canvas id="boundingBox"></canvas>
+        <div id="player"></div>
+    </div>
+
+    <label id="epochLabel">Training Cycle: 0</label>
+    <label id="timeLabel">Time: 0:30</label>
+    <label id="numberOfDotsCollectedLabel">Number of Dots Collected: 0</label>
+
+    <label id="rewardsLabel">Rewards: </label>
+    <label id="moveCloserRewardLabel">Move Closer: </label>
+    <input type="text" id="moveCloserRewardInput"></input>
+    <label id="moveFartherRewardLabel">Move Farther: </label>
+    <input type="text" id="moveFartherRewardInput"></input>
+    <label id="collisionRewardLabel">Collision: </label>
+    <input type="text" id="collisionRewardInput"></input>
+
+    <button id="runAlgorithmButton">Train</button>
+    <button id="testAlgorithmButton">Test</button>
+
+    <button id="backButton">Back</button>
+    <script>
+        let playerX = 8.5;
+        let playerY  = 50;
+
+        const boundingBox = document.getElementById('boundingBox');
+        const canvas = boundingBox.getContext('2d', { willReadFrequently: true });
+
+        const player = document.getElementById('player');
+        player.style.left = 7 + '%';
+        player.style.top = 47 + '%';
+        const episodeCounter = document.getElementById('episodeCounter');
+        const socket = new WebSocket(`ws://${window.location.host}/pathfinding/socket`);
+
+        const runAlgorithmButton = document.getElementById("runAlgorithmButton");
+        runAlgorithmButton.addEventListener('click', function () {
+            const moveCloserRewardInput= document.getElementById("moveCloserRewardInput").value;
+            const moveFartherRewardInput = document.getElementById("moveFartherRewardInput").value;
+            const collisionRewardInput = document.getElementById("collisionRewardInput").value;
+
+            let rewards = [];
+            rewards[0] = moveCloserRewardInput;
+            rewards[1] = moveFartherRewardInput;
+            rewards[2] = collisionRewardInput;
+            socket.send(JSON.stringify({ action: 'run', data: rewards }));
+        });
+
+        function drawCircle(x, y, radius) {
+            canvas.fillStyle = 'blue';
+            canvas.beginPath();
+            canvas.arc(x, y, radius, 0, Math.PI * 2);
+            canvas.fill();
+            canvas.closePath();
+        }
+
+        const testAlgorithmButton = document.getElementById("testAlgorithmButton");
+        testAlgorithmButton.addEventListener("click", function() {
+            socket.send(JSON.stringify({ action: 'test' }));
+        });
+
+        function adjustCanvasSize() {
+            const boundingBox = document.getElementById('boundingBox');
+            const container = document.getElementById('container');
+            const containerWidth = container.offsetWidth;
+            container.style.height = containerWidth + 'px';
+            boundingBox.width = containerWidth * 0.5;
+            boundingBox.height = containerWidth * 0.5;
+        }
+
+        adjustCanvasSize();
+
+        window.addEventListener('resize', adjustCanvasSize);
+        window.addEventListener('load', adjustCanvasSize);
+
+        let lastKeyPressTime = 0;
+        const keyPressInterval = 16;
+
+        socket.onmessage = function(event) {
+            const currentTime = Date.now();
+            if (currentTime - lastKeyPressTime < keyPressInterval) {
+                return;
+            }
+
+            lastKeyPressTime = currentTime;
+
+            canvas.clearRect(0, 0, boundingBox.width, boundingBox.height);
+
+            const data = JSON.parse(event.data);
+            player.style.left = data.playerX + '%';
+            player.style.top = data.playerY + '%';
+
+            const epochLabel = document.getElementById("epochLabel");
+            epochLabel.textContent = "Training Cycle: " + data.epoch;
+            const timeLabel = document.getElementById("timeLabel");
+            timeLabel.textContent = "Time: " + data.time;
+            const numberOfDotsCollectedLabel = document.getElementById("numberOfDotsCollectedLabel");
+            numberOfDotsCollectedLabel.textContent = "Number of Dots Collected: " + data.numberOfDotsCollected;
+
+            drawCircle(data.dotX / 100.0 * boundingBox.width, data.dotY / 100.0 * boundingBox.height, .025 * boundingBox.width);
+
+            if (isColliding()) socket.send(JSON.stringify({ action: 'collision' }));
+        };
+
+        function isColliding() {
+            const boundingBoxRect = player.getBoundingClientRect();
+
+            const playerLeftInBoundingBox = Math.round((parseFloat(player.style.left) / 100) * boundingBox.width);
+            const playerTopInBoundingBox = Math.round((parseFloat(player.style.top) / 100) * boundingBox.height);
+            const playerWidthInBoundingBox = Math.round((3 / 100) * boundingBox.width);
+            const playerHeightInBoundingBox = Math.round((3 / 100) * boundingBox.height);
+
+            let borderPoints = [
+                { x: playerLeftInBoundingBox, y: playerTopInBoundingBox }, //top left
+                { x: playerLeftInBoundingBox + playerWidthInBoundingBox / 2, y: playerTopInBoundingBox }, //top middle
+                { x: playerLeftInBoundingBox + playerWidthInBoundingBox, y: playerTopInBoundingBox }, //top right
+                { x: playerLeftInBoundingBox + playerWidthInBoundingBox, y: playerTopInBoundingBox + playerHeightInBoundingBox / 2 }, //middle right
+                { x: playerLeftInBoundingBox + playerWidthInBoundingBox, y: playerTopInBoundingBox + playerHeightInBoundingBox }, //bottom right
+                { x: playerLeftInBoundingBox + playerWidthInBoundingBox / 2, y: playerTopInBoundingBox + playerHeightInBoundingBox }, //bottom middle
+                { x: playerLeftInBoundingBox, y: playerTopInBoundingBox + playerHeightInBoundingBox }, //bottom left
+                { x: playerLeftInBoundingBox, y: playerTopInBoundingBox + playerHeightInBoundingBox / 2 } //middle left
+            ];
+            
+            for (let x = 0; x < borderPoints.length; x++) {
+                const borderPoint = borderPoints[x];
+                const imageData = canvas.getImageData(borderPoint.x, borderPoint.y, 1, 1).data;
+                for (let i = 0; i < imageData.length; i += 4) {
+                    const red = imageData[i];
+                    const green = imageData[i + 1];
+                    const blue = imageData[i + 2];
+                    if (red === 0 && green === 0 && blue === 255) {
+                        return "collided";
+                    }
+                }
+            }
+        }
+
+        document.getElementById("backButton").addEventListener("click", function() {
+            window.location.href = "/"
+        });
+
+        const keyState = {
+            w: false,
+            a: false,
+            s: false,
+            d: false
+        };
+
+        document.addEventListener('keydown', function(event) {
+            switch (event.key.toLowerCase()) {
+                case 'w':
+                    keyState.w = true;
+                    break;
+                case 'a':
+                    keyState.a = true;
+                    break;
+                case 's':
+                    keyState.s = true;
+                    break;
+                case 'd':
+                    keyState.d = true;
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', function(event) {
+            switch (event.key.toLowerCase()) {
+                case 'w':
+                    keyState.w = false;
+                    break;
+                case 'a':
+                    keyState.a = false;
+                    break;
+                case 's':
+                    keyState.s = false;
+                    break;
+                case 'd':
+                    keyState.d = false;
+                    break;
+            }
+        });
+
+        function update() {
+            if (keyState.w) {
+                socket.send(JSON.stringify({ action: 'save' }));
+            }
+            if (keyState.a) {
+                socket.send(JSON.stringify({ action: 'epoch' }));
+            }
+            if (keyState.s) {
+                socket.send(JSON.stringify({ action: 'load' }));
+            }
+            if (keyState.d) {
+                socket.send(JSON.stringify({ action: 'right' }));
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        update();
+    </script>
+</body>
+</html>

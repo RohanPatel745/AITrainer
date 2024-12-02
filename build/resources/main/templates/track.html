@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Responsive Website
+    </title>
+    <link rel="stylesheet" href="/css/track.css?v=1.0">
+</head>
+<body>
+    <div id="container">
+        <canvas id="boundingBox"></canvas>
+        <div id="car"></div>
+    </div>
+
+    <label id="epochLabel">Training Cycle: 0</label>
+
+    <label id="drawTitleLabel">Draw Options: </label>
+    <label id="drawTrackLabel">Draw Track: </label>
+    <input type="checkbox" id="drawTrackCheckBox"></input>
+    <label id="drawGoalLabel">Draw Goal: </label>
+    <input type="checkbox" id="drawGoalCheckBox"></input>
+    <label id="moveCarLabel">Move Car: </label>
+    <input type="checkbox" id="moveCarCheckBox"></input>
+    <label id="rotateCarLabel">Rotate Car: </label>
+    <input type="checkbox" id="rotateCarCheckBox"></input>
+    <button id="selectGoalPointButton">Select Goal Point</button>
+
+    <label id="rewardsLabel">Main Rewards: </label>
+    <label id="moveCloserRewardLabel">Move Closer: </label>
+    <input type="text" id="moveCloserRewardInput"></input>
+    <label id="moveFartherRewardLabel">Move Farther: </label>
+    <input type="text" id="moveFartherRewardInput"></input>
+    <label id="collisionRewardLabel">Collision: </label>
+    <input type="text" id="collisionRewardInput"></input>
+    <label id="goalRewardLabel">Goal: </label>
+    <input type="text" id="goalRewardInput"></input>
+
+    <label id="optimizationRewardsLabel">Optimization Rewards: </label>
+    <label id="speedRewardLabel">Speed: </label>
+    <input type="text" id="speedRewardInput"></input>
+    <label id="safetyRewardLabel">Safety: </label>
+    <input type="text" id="safetyRewardInput"></input>
+    <label id="fuelRewardLabel">Fuel Efficiency: </label>
+    <input type="text" id="fuelRewardInput"></input>
+
+    <label id="speedLabel">0 mph </label>
+
+    <button id="runAlgorithmButton">Train</button>
+    <button id="testAlgorithmButton">Test</button>
+
+    <button id="backButton">Back</button>
+    <script>
+        let goalX = 0;
+        let goalY = 0;
+
+        let carCenterX = 8.5;
+        let carCenterY = 50;
+
+        let carDistanceX = 0;
+        let carDistanceY = 0;
+
+        const car = document.getElementById('car');
+        car.style.left = 7 + '%';
+        car.style.top = 47 + '%';
+        const episodeCounter = document.getElementById('episodeCounter');
+        const socket = new WebSocket(`ws://${window.location.host}/car`);
+        let carAngle = 90;
+
+        const drawTrackCheckBox = document.getElementById("drawTrackCheckBox");
+        const drawGoalCheckBox = document.getElementById("drawGoalCheckBox");
+        const moveCarCheckBox = document.getElementById("moveCarCheckBox");
+        const rotateCarCheckBox = document.getElementById("rotateCarCheckBox");
+        const selectGoalPointButton = document.getElementById("selectGoalPointButton");
+
+        let isDrawing = false;
+        let isDrawingTrack = false;
+        let isDrawingGoal = false;
+        let isMovingCar = false;
+        let isRotatingCar = false;
+        let isSelectingGoalPoint = false;
+
+        drawTrackCheckBox.addEventListener("click", function() {
+            isDrawingTrack = drawTrackCheckBox.checked;
+
+            drawGoalCheckBox.checked = false;
+            isDrawingGoal = false;
+
+            moveCarCheckBox.checked = false;
+            isMovingCar = false;
+            
+            rotateCarCheckBox.checked = false;
+            isRotatingCar = false;
+        });
+
+        drawGoalCheckBox.addEventListener("click", function() {
+            isDrawingGoal = drawGoalCheckBox.checked;
+            
+            drawTrackCheckBox.checked = false;
+            isDrawingTrack = false;
+
+            moveCarCheckBox.checked = false;
+            isMovingCar = false;
+            
+            rotateCarCheckBox.checked = false;
+            isRotatingCar = false;
+        });
+
+        moveCarCheckBox.addEventListener("click", function() {
+            isMovingCar = moveCarCheckBox.checked;
+            
+            drawTrackCheckBox.checked = false;
+            isDrawingTrack = false;
+
+            drawGoalCheckBox.checked = false;
+            isDrawingGoal = false;
+            
+            rotateCarCheckBox.checked = false;
+            isRotatingCar = false;
+        });
+
+        rotateCarCheckBox.addEventListener("click", function() {
+            isRotatingCar = rotateCarCheckBox.checked;
+            
+            drawTrackCheckBox.checked = false;
+            isDrawingTrack = false;
+
+            drawGoalCheckBox.checked = false;
+            isDrawingGoal = false;
+            
+            moveCarCheckBox.checked = false;
+            isMovingCar = false;
+        });
+
+        selectGoalPointButton.addEventListener("click", function() {
+            isSelectingGoalPoint = true;
+
+            drawTrackCheckBox.checked = false;
+            isDrawingTrack = false;
+
+            drawGoalCheckBox.checked = false;
+            isDrawingGoal = false;
+            
+            moveCarCheckBox.checked = false;
+            isMovingCar = false;
+
+            rotateCarCheckBox.checked = false;
+            isRotatingCar = false;
+        })
+
+        boundingBox.addEventListener('mousedown', function(event) {
+            isDrawing = true;
+            draw(event);
+        });
+
+        boundingBox.addEventListener('mousemove', function(event) {
+            if (isDrawing) {
+                draw(event);
+            }
+        });
+
+        window.addEventListener('mouseup', function() {
+            isDrawing = false;
+        });
+        
+        function draw(event) {
+            const boundingBox = document.getElementById('boundingBox');
+            const canvas = boundingBox.getContext('2d', { willReadFrequently: true });
+            const rect = boundingBox.getBoundingClientRect();
+
+            const x = ((event.clientX - rect.left) / rect.width) * boundingBox.width;
+            const y = ((event.clientY - rect.top) / rect.height) * boundingBox.height;
+
+            if (isDrawingTrack){
+                canvas.fillStyle = 'gray';
+                canvas.fillRect(x, y, 5, 5);
+            } else if (isDrawingGoal) {
+                canvas.fillStyle = 'blue';
+                canvas.fillRect(x, y, 15, 15);
+            } else if (isMovingCar) {
+                let moveCarX = event.x - 30;
+                let moveCarY = event.y - 25;
+
+                let carPosition = [];
+                carPosition[0] = moveCarX / boundingBox.offsetWidth * 100;
+                carPosition[1] = moveCarY / boundingBox.offsetHeight * 100;
+                carPosition[2] = carAngle;
+
+                socket.send(JSON.stringify({ action: 'updateCarPosition', data: carPosition }));
+            } else if (isRotatingCar) {
+                const carLeftInBoundingBox = Math.round((parseFloat(car.style.left) / 100) * boundingBox.width);
+                const carTopInBoundingBox = Math.round((parseFloat(car.style.top) / 100) * boundingBox.height);
+                const carWidthInBoundingBox = Math.round((3 / 100) * boundingBox.width);
+                const carHeightInBoundingBox = Math.round((6 / 100) * boundingBox.height);
+
+                const carCenter = [carLeftInBoundingBox + carWidthInBoundingBox / 2, carTopInBoundingBox + carHeightInBoundingBox / 2];
+
+                let borderPoints = [
+                    { x: carLeftInBoundingBox + carWidthInBoundingBox / 2, y: carTopInBoundingBox }, //top middle
+                ];
+
+                let rotatedBorderPoints = borderPoints.map(corner => rotatePoint(corner, { x: carCenter[0], y: carCenter[1] }, carAngle * Math.PI / 180));
+                let angle = -((Math.atan2((rotatedBorderPoints[0].y - y), (x - rotatedBorderPoints[0].x)) * 180 / Math.PI) - 90);
+
+                car.style.transform = 'rotate(' + angle + 'deg)';
+                carAngle = angle;
+
+                let carPosition = [];
+                carPosition[0] = carAngle
+                socket.send(JSON.stringify({ action: 'updateCarAngle', data: carPosition }));
+            } else if (isSelectingGoalPoint) {
+                canvas.fillStyle = 'orange';
+                canvas.clearRect(goalX - 1.5, goalY - 1.5, 6.5, 6.5);
+                canvas.fillRect(x, y, 5, 5); 
+
+                goalX = x;
+                goalY = y;
+                isSelectingGoalPoint = false;
+                isDrawing = false;
+            }
+        }
+
+        const runAlgorithmButton = document.getElementById("runAlgorithmButton");
+        runAlgorithmButton.addEventListener('click', function () {
+            drawTrackCheckBox.checked = false;
+            isDrawingTrack = false;
+
+            drawGoalCheckBox.checked = false;
+            isDrawingGoal = false;
+            
+            moveCarCheckBox.checked = false;
+            isMovingCar = false;
+
+            rotateCarCheckBox.checked = false;
+            isRotatingCar = false;
+
+            isSelectingGoalPoint = false;
+
+            const moveCloserRewardInput= document.getElementById("moveCloserRewardInput").value;
+            const moveFartherRewardInput = document.getElementById("moveFartherRewardInput").value;
+            const collisionRewardInput = document.getElementById("collisionRewardInput").value;
+            const goalRewardInput = document.getElementById("goalRewardInput").value;
+            // const speedRewardInput = document.getElementById("speedRewardInput").value;
+
+            let rewards = [];
+            rewards[0] = moveCloserRewardInput;
+            rewards[1] = moveFartherRewardInput;
+            rewards[2] = collisionRewardInput;
+            rewards[3] = goalRewardInput;
+            // rewards[4] = speedRewardInput;
+            socket.send(JSON.stringify({ action: 'run', data: rewards }));
+        });
+
+        const testAlgorithmButton = document.getElementById("testAlgorithmButton");
+        testAlgorithmButton.addEventListener("click", function() {
+            socket.send(JSON.stringify({ action: 'test' }));
+        });
+
+        function adjustCanvasSize() {
+            const boundingBox = document.getElementById('boundingBox');
+            const container = document.getElementById('container');
+            const containerWidth = container.offsetWidth;
+            container.style.height = containerWidth + 'px';
+            boundingBox.width = containerWidth * 0.5;
+            boundingBox.height = containerWidth * 0.5;
+        }
+
+        adjustCanvasSize();
+
+        window.addEventListener('resize', adjustCanvasSize);
+        window.addEventListener('load', adjustCanvasSize);
+
+        let distance = Math.sqrt(Math.pow((goalY - carCenterY), 2) + Math.pow((goalX - carCenterX), 2));
+        let distances = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, carAngle, distance];
+        let oldDistances = distances.map(point => ({ ...point }));
+
+        let lastKeyPressTime = 0;
+        const keyPressInterval = 16;
+
+        socket.onmessage = function(event) {
+            const currentTime = Date.now();
+            if (currentTime - lastKeyPressTime < keyPressInterval) {
+                return;
+            }
+
+            lastKeyPressTime = currentTime;
+
+            const data = JSON.parse(event.data);
+            car.style.left = data.x + '%';
+            car.style.top = data.y + '%';
+            car.style.transform = 'rotate(' + data.rotation + 'deg)';
+            carAngle = data.rotation;
+
+            let message = isColliding();
+            if (message == "collided" && !isMovingCar && !isRotatingCar) {
+                socket.send(JSON.stringify({ action: 'collision' }));
+            } else if (message == "won" && !isMovingCar && !isRotatingCar) {
+                socket.send(JSON.stringify({ action: 'won' }));
+            }
+
+            if (!arraysAreEqual(oldDistances, distances)) {
+                let oldDistances = distances.map(point => ({ ...point }));
+                distances[8] = data.x;
+                distances[9] = data.y;
+                distances[10] = carAngle;
+                distances[11] = Math.sqrt(Math.pow((goalY - carDistanceY), 2) + Math.pow((goalX - carDistanceX), 2));
+                distances[12] = 0;
+                distances[13] = 0;
+                socket.send(JSON.stringify({ action: 'distances', data: distances }));
+            }
+
+            const epochLabel = document.getElementById("epochLabel");
+            epochLabel.textContent = "Training Cycle: " + data.epoch;
+
+            const speedLabel = document.getElementById("speedLabel");
+            speedLabel.textContent = data.speed + " mph";
+        };
+
+        function arraysAreEqual(arr1, arr2) {
+            if (arr1.length !== arr2.length) return false;
+            for (let i = 0; i < arr1.length; i++) {
+                if (arr1[i] !== arr2[i]) return false;
+            }
+            return true;
+        }
+        
+        function isColliding() {
+            const boundingBox = document.getElementById('boundingBox');
+            const canvas = boundingBox.getContext('2d', { willReadFrequently: true });
+            const boundingBoxRect = car.getBoundingClientRect();
+
+            const carLeftInBoundingBox = Math.round((parseFloat(car.style.left) / 100) * boundingBox.width);
+            const carTopInBoundingBox = Math.round((parseFloat(car.style.top) / 100) * boundingBox.height);
+            const carWidthInBoundingBox = Math.round((3 / 100) * boundingBox.width);
+            const carHeightInBoundingBox = Math.round((6 / 100) * boundingBox.height);
+
+            let borderPoints = [
+                { x: carLeftInBoundingBox, y: carTopInBoundingBox }, //top left
+                { x: carLeftInBoundingBox + carWidthInBoundingBox / 2, y: carTopInBoundingBox }, //top middle
+                { x: carLeftInBoundingBox + carWidthInBoundingBox, y: carTopInBoundingBox }, //top right
+                { x: carLeftInBoundingBox + carWidthInBoundingBox, y: carTopInBoundingBox + carHeightInBoundingBox / 2 }, //middle right
+                { x: carLeftInBoundingBox + carWidthInBoundingBox, y: carTopInBoundingBox + carHeightInBoundingBox }, //bottom right
+                { x: carLeftInBoundingBox + carWidthInBoundingBox / 2, y: carTopInBoundingBox + carHeightInBoundingBox }, //bottom middle
+                { x: carLeftInBoundingBox, y: carTopInBoundingBox + carHeightInBoundingBox }, //bottom left
+                { x: carLeftInBoundingBox, y: carTopInBoundingBox + carHeightInBoundingBox / 2 } //middle left
+            ];
+
+            const carCenter = [carLeftInBoundingBox + carWidthInBoundingBox / 2, carTopInBoundingBox + carHeightInBoundingBox / 2];
+            carCenterX = carCenter[0];
+            carCenterY = carCenter[1];
+
+            carDistanceX = carLeftInBoundingBox + carWidthInBoundingBox / 2;
+            carDistanceY = carTopInBoundingBox;
+
+            let rotatedBorderPoints = borderPoints.map(corner => rotatePoint(corner, { x: carCenter[0], y: carCenter[1] }, carAngle * Math.PI / 180));
+            
+            for (let x = 0; x < rotatedBorderPoints.length; x++) {
+                const rotatedPoint = rotatedBorderPoints[x];
+                const imageData = canvas.getImageData(rotatedPoint.x, rotatedPoint.y, 1, 1).data;
+                for (let i = 0; i < imageData.length; i += 4) {
+                    const red = imageData[i];
+                    const green = imageData[i + 1];
+                    const blue = imageData[i + 2];
+                    if (red === 128 && green === 128 && blue === 128) {
+                        return "collided";
+                    } else if (red === 0 && green === 0 && blue === 255) {
+                        return "won";
+                    }
+                }
+            }
+
+            modifiedBorderPoints = borderPoints.map(point => ({ ...point }));
+            let calculatedPointIndicies = [];
+            while (calculatedPointIndicies.length < 8) {
+
+                modifiedBorderPoints[0].x -= .25;
+                modifiedBorderPoints[0].y -= .25;
+
+                modifiedBorderPoints[1].y -= .25;
+
+                modifiedBorderPoints[2].x += .25;
+                modifiedBorderPoints[2].y -= .25;
+
+                modifiedBorderPoints[3].x += .25;
+
+                modifiedBorderPoints[4].x += .25;
+                modifiedBorderPoints[4].y += .25;
+
+                modifiedBorderPoints[5].y += .25;
+
+                modifiedBorderPoints[6].x -= .25;
+                modifiedBorderPoints[6].y += .25;
+
+                modifiedBorderPoints[7].x -= .25;
+
+                rotatedBorderPoints = modifiedBorderPoints.map(corner => rotatePoint(corner, { x: carCenter[0], y: carCenter[1] }, carAngle * Math.PI / 180));
+
+                for (let x = 0; x < 8; x++) {
+                    if (calculatedPointIndicies.includes(x)) continue;
+
+                    const rotatedPoint = rotatedBorderPoints[x];
+
+                    if (rotatedPoint.x < 0 || rotatedPoint.x > 500 || rotatedPoint.y < 0 || rotatedPoint.y > 500) {
+                        calculatedPointIndicies.push(x);
+                        distances[x] = 200;
+                        continue;
+                    }
+
+                    const imageData = canvas.getImageData(rotatedPoint.x, rotatedPoint.y, 1, 1).data;
+                    for (let i = 0; i < imageData.length; i += 4) {
+                        const red = imageData[i];
+                        const green = imageData[i + 1];
+                        const blue = imageData[i + 2];
+                        if (red === 128 && green === 128 && blue === 128) {
+                            calculatedPointIndicies.push(x);
+                            distances[x] = Math.sqrt(Math.pow((rotatedPoint.y - borderPoints[x].y), 2) 
+                                + Math.pow((rotatedPoint.x - borderPoints[x].x), 2));
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        function rotatePoint(point, center, angle) {
+            const cosAngle = Math.cos(angle);
+            const sinAngle = Math.sin(angle);
+
+            const dx = point.x - center.x;
+            const dy = point.y - center.y;
+            const rotatedX = Math.round(center.x + dx * cosAngle - dy * sinAngle);
+            const rotatedY = Math.round(center.y + dx * sinAngle + dy * cosAngle);
+            return { x: rotatedX, y: rotatedY };
+        }
+
+        document.getElementById("backButton").addEventListener("click", function() {
+            window.location.href = "/"
+        });
+
+        const keyState = {
+            w: false,
+            a: false,
+            s: false,
+            d: false
+        };
+
+        document.addEventListener('keydown', function(event) {
+            switch (event.key.toLowerCase()) {
+                case 'w':
+                    keyState.w = true;
+                    break;
+                case 'a':
+                    keyState.a = true;
+                    break;
+                case 's':
+                    keyState.s = true;
+                    break;
+                case 'd':
+                    keyState.d = true;
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', function(event) {
+            switch (event.key.toLowerCase()) {
+                case 'w':
+                    keyState.w = false;
+                    break;
+                case 'a':
+                    keyState.a = false;
+                    break;
+                case 's':
+                    keyState.s = false;
+                    break;
+                case 'd':
+                    keyState.d = false;
+                    break;
+            }
+        });
+
+        function update() {
+            if (keyState.w) {
+                socket.send(JSON.stringify({ action: 'accelerate' }));
+            }
+            if (keyState.a) {
+                socket.send(JSON.stringify({ action: 'turnLeft' }));
+            }
+            if (keyState.s) {
+                socket.send(JSON.stringify({ action: 'brake' }));
+            }
+            if (keyState.d) {
+                socket.send(JSON.stringify({ action: 'turnRight' }));
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        update();
+    </script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+body {
+    background-color: black;
+    height: 100%;
+    display: flex;
+}
+
+#levelOneButton {
+    position: absolute;
+    left: 20%;
+    top: 40%;
+    width: 10vw;
+    height: 10vw;
+    font-size: 4dvw;
+    background-color: darkgray;
+    color: lime;
+}
+
+#levelTwoButton {
+    position: absolute;
+    left: 32%;
+    top: 40%;
+    width: 10vw;
+    height: 10vw;
+    font-size: 4dvw;
+    background-color: darkgray;
+    color: lime;
+}
+
+#levelThreeButton {
+    position: absolute;
+    left: 44%;
+    top: 40%;
+    width: 10vw;
+    height: 10vw;
+    font-size: 4dvw;
+    background-color: darkgray;
+    color: yellow;
+}
+
+
+#levelFourButton {
+    position: absolute;
+    left: 56%;
+    top: 40%;
+    width: 10vw;
+    height: 10vw;
+    font-size: 4dvw;
+    background-color: darkgray;
+    color: yellow;
+}
+
+#levelFiveButton {
+    position: absolute;
+    left: 68%;
+    top: 40%;
+    width: 10vw;
+    height: 10vw;
+    font-size: 4dvw;
+    background-color: darkgray;
+    color: red;
+}
+
+#backButton {
+    position: absolute;
+    left: 85%;
+    top: 85%;
+    width: 10vw;
+    height: 5vw;
+    font-size: 2dvw;
+    background-color: darkgray;
+    color: white;
+}

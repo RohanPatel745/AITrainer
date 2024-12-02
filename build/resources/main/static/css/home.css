@@ -1,0 +1,49 @@
+body {
+    background-color: black;
+    height: 100%;
+    display: flex;
+}
+
+#mazeSelectorButton {
+    position: absolute;
+    left: 15%;
+    top: 37.5%;
+    width: 20%;
+    height: 25%;
+    font-size: 4dvw;
+    background-color: darkgray;
+    color: lime;
+}
+
+#pathfindingSelectorButton {
+    position: absolute;
+    left: 40%;
+    top: 37.5%;
+    width: 20%;
+    height: 25%;
+    font-size: 4dvw;
+    background-color: darkgray;
+    color: yellow;
+}
+
+#carSelectorButton {
+    position: absolute;
+    left: 65%;
+    top: 37.5%;
+    width: 20%;
+    height: 25%;
+    font-size: 4dvw;
+    background-color: darkgray;
+    color: red;
+}
+
+#infoButton {
+    position: absolute;
+    left: 85%;
+    top: 85%;
+    width: 10vw;
+    height: 5vw;
+    font-size: 2dvw;
+    background-color: darkgray;
+    color: white;
+}

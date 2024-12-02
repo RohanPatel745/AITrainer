@@ -1,32 +1,13 @@
-# Use a Gradle image with JDK
-FROM gradle:7.6-jdk17 AS build
+FROM openjdk:17-jdk-alpine
 
-# Set the working directory in the container
+# Set working directory inside the container
 WORKDIR /app
 
-# Copy the Gradle files to the container
-COPY build.gradle settings.gradle ./
+# Copy the packaged JAR file into the container
+COPY build/libs/test-0.0.1-SNAPSHOT.jar app.jar
 
-# Download dependencies
-RUN gradle build --no-daemon
+# Expose the port your application runs on
+EXPOSE 9090
 
-# Copy the rest of your project
-COPY . .
-
-# Build the JAR file
-RUN gradle jar --no-daemon
-
-# Use a smaller JRE image to run the application
-FROM openjdk:17-jdk-slim
-
-# Set the working directory in the container
-WORKDIR /app
-
-# Copy the built JAR file from the build stage
-COPY --from=build /app/build/libs/*.jar app.jar
-
-# Expose the port your website runs on
-EXPOSE 8080
-
-# Command to run the JAR file
-CMD ["java", "-jar", "app.jar"]
+# Run the JAR file
+ENTRYPOINT ["java", "-jar", "app.jar"]
