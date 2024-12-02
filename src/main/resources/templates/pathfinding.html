@@ -41,7 +41,7 @@
         player.style.left = 7 + '%';
         player.style.top = 47 + '%';
         const episodeCounter = document.getElementById('episodeCounter');
-        const socket = new WebSocket(`ws://${window.location.host}/pathfinding/socket`);
+        const socket = new WebSocket(`wss://${window.location.host}/pathfinding/socket`);
 
         const runAlgorithmButton = document.getElementById("runAlgorithmButton");
         runAlgorithmButton.addEventListener('click', function () {

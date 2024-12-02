@@ -65,7 +65,7 @@
         car.style.left = 7 + '%';
         car.style.top = 47 + '%';
         const episodeCounter = document.getElementById('episodeCounter');
-        const socket = new WebSocket(`ws://${window.location.host}/car`);
+        const socket = new WebSocket(`wss://${window.location.host}/car`);
         let carAngle = 90;
 
         const drawTrackCheckBox = document.getElementById("drawTrackCheckBox");
