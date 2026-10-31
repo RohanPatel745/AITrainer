@@ -114,7 +114,7 @@
 
     <button id="backButton">Back</button>
     <script>
-        const socket = new WebSocket(`wss://${window.location.host}/mazeLevels`);
+        const socket = new WebSocket(`ws://${window.location.host}/mazeLevels`);
 
         const screenWidth = document.documentElement.clientWidth;
         const screenHeight = document.documentElement.clientHeight;
